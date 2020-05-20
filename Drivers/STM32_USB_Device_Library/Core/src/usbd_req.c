@@ -758,7 +758,7 @@ static void USBD_ClrFeature(USB_OTG_CORE_HANDLE  *pdev,
 
 /**
 * @brief  USBD_ParseSetupRequest 
-*         Copy buffer into setup structure
+*         Copy buffer into system_init structure
 * @param  pdev: device instance
 * @param  req: usb request
 * @retval None

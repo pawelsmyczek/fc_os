@@ -221,7 +221,7 @@ uint32_t   DCD_EP_PrepareRx( USB_OTG_CORE_HANDLE *pdev,
   
   ep = &pdev->dev.out_ep[ep_addr & 0x7F];
   
-  /*setup and start the Xfer */
+  /*system_init and start the Xfer */
   ep->xfer_buff = pbuf;  
   ep->xfer_len = buf_len;
   ep->xfer_count = 0;

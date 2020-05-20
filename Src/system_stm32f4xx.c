@@ -19,7 +19,7 @@
   *                      the "startup_stm32f4xx.s" file.
   *
   *      - SystemCoreClock variable: Contains the core clock (HCLK), it can be used
-  *                                  by the user application to setup the SysTick 
+  *                                  by the user application to setup the SysTick
   *                                  timer or configure other parameters.
   *                                     
   *      - SystemCoreClockUpdate(): Updates the variable SystemCoreClock and must

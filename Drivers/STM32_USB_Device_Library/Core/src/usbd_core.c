@@ -165,7 +165,7 @@ USBD_Status USBD_DeInit(USB_OTG_CORE_HANDLE *pdev)
 
 /**
 * @brief  USBD_SetupStage 
-*         Handle the setup stage
+*         Handle the system_init stage
 * @param  pdev: device instance
 * @retval status
 */

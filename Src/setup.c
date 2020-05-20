@@ -15,13 +15,8 @@
 __ALIGN_BEGIN USB_OTG_CORE_HANDLE  USB_OTG_dev __ALIGN_END;
 
 
-GPIO_InitTypeDef            GPIO_InitStructure;
-TIM_TimeBaseInitTypeDef     TIM_TimeBaseInitStructure;
-TIM_OCInitTypeDef           TIM_OCInitStructure;
-SPI_InitTypeDef             SPI_InitStruct;
-
 static __IO uint32_t TimingDelay = 0;
-static __IO uint32_t elapsed_ms_since_start = 0;
+__IO uint32_t elapsed_ms_since_start = 0;
 __IO uint32_t sysTickCycleCounter = 0;
 __IO uint32_t usTicks = 0;
 
@@ -55,8 +50,8 @@ __IO uint32_t *output_channels[] = {&(TIM8->CCR1), // motor 1
 float KP = 0.05f, KI =  0.005f, KD = 0.15f;
 float KP_vel = 2.0f, KI_vel =  0.5f, KD_vel = 0.7f;
 
-void setup(void){
-    system_init();
+void system_init(void){
+    system_clock_init();
     init_clocks();
     gpio_inits();
     spi_init();
@@ -66,7 +61,7 @@ void setup(void){
               &USBD_CDC_cb, &USR_cb);
 
     init_motors();
-    initMPU6000();
+    init_mpu();
 
     for(uint8_t i = 0; i < 3; i++)
         pid_init(&pid_angle[i], KP, KI, KD, 0.01f, -150.0f, 150.0f,
@@ -80,13 +75,15 @@ void setup(void){
 void SysTick_Handler(void)
 {
     ++elapsed_ms_since_start;
-    readMPU6000();
+    read_mpu();
 }
 
 
-void system_init(void){
+
+void system_clock_init(void){
     SystemInit();
     RCC_GetClocksFreq(&RCC_Clocks);
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
     if (SysTick_Config(SystemCoreClock / 1000)) {
         /* Capture error */
         while (1);
@@ -96,8 +93,8 @@ void system_init(void){
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     // enable the CPU cycle counter
     DWT_CTRL |= CYCCNTENA;
+    NVIC_SetPriority(SysTick_IRQn, 0);
 
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 }
 
 void init_clocks(void){
@@ -339,143 +336,18 @@ void usart_inits(void){
     RCC_APB2PeriphClockLPModeCmd(RCC_APB2Periph_USART1, ENABLE);
 
     USART_InitTypeDef USART_InitStructure;
-    USART_InitStructure.USART_BaudRate = 9600;
-    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-    USART_InitStructure.USART_StopBits = USART_StopBits_1;
-    USART_InitStructure.USART_Parity = USART_Parity_No ;
-    USART_InitStructure.USART_Mode = USART_Mode_Tx | USART_Mode_Rx;
-    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_BaudRate              = 9600;
+    USART_InitStructure.USART_WordLength            = USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits              = USART_StopBits_1;
+    USART_InitStructure.USART_Parity                = USART_Parity_No ;
+    USART_InitStructure.USART_Mode                  = USART_Mode_Tx | USART_Mode_Rx;
+    USART_InitStructure.USART_HardwareFlowControl   = USART_HardwareFlowControl_None;
 
     USART_Init(USART1, &USART_InitStructure);
     USART_Cmd(USART1, ENABLE);
 }
 
 
-int spi_init(void){
-
-    uint8_t dummyread = 0;
-
-
-    SPI_I2S_DeInit(SPI1);
-
-    SPI_InitStruct.SPI_Direction         = SPI_Direction_2Lines_FullDuplex;
-    SPI_InitStruct.SPI_Mode              = SPI_Mode_Master;
-    SPI_InitStruct.SPI_DataSize          = SPI_DataSize_8b;
-    SPI_InitStruct.SPI_CPOL              = SPI_CPOL_High;
-    SPI_InitStruct.SPI_CPHA              = SPI_CPHA_2Edge;
-    SPI_InitStruct.SPI_NSS               = SPI_NSS_Soft;
-    SPI_InitStruct.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_64;  // 42/64 = 0.65625 MHz SPI Clock
-    SPI_InitStruct.SPI_FirstBit          = SPI_FirstBit_MSB;
-    SPI_InitStruct.SPI_CRCPolynomial     = 7;
-
-    SPI_Init(SPI1, &SPI_InitStruct);
-
-    SPI_CalculateCRC(SPI1, DISABLE);
-
-
-
-    SPI_Cmd(SPI1, ENABLE);
-
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
-
-    dummyread = SPI_I2S_ReceiveData(SPI1);
-
-    return dummyread;
-}
-
-
-void spi_tx(uint8_t address, uint8_t data){
-    GPIO_ResetBits(GPIOA, GPIO_Pin_4);
-
-    while(!SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE));
-    SPI_I2S_SendData(SPI1, address);
-    while(!SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE));
-    SPI_I2S_ReceiveData(SPI1);
-    while(!SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE));
-    SPI_I2S_SendData(SPI1, data);
-    while(!SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE));
-    SPI_I2S_ReceiveData(SPI1);
-
-    GPIO_SetBits(GPIOA, GPIO_Pin_4);
-}
-
-
-uint8_t spi_transfer(uint8_t data) {
-    uint16_t spiTimeout = 0x1000;
-    uint8_t received = 0;
-
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET)
-        if ((spiTimeout--) == 0)
-            return(0);
-
-    SPI_I2S_SendData(SPI1, data);
-    spiTimeout = 0x1000;
-
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET)
-        if ((spiTimeout--) == 0)
-            return(0);
-
-    received = (uint8_t)SPI_I2S_ReceiveData(SPI1);
-    return received;
-}
-
-void set_spi_divisor(uint16_t data)
-{
-#define BR_CLEAR_MASK 0xFFC7
-
-    uint16_t tempRegister;
-
-    SPI_Cmd(SPI1, DISABLE);
-
-    tempRegister = SPI1->CR1;
-
-    switch (data)
-    {
-        case 2:
-            tempRegister &= BR_CLEAR_MASK;
-            tempRegister |= SPI_BaudRatePrescaler_2;
-            break;
-
-        case 4:
-            tempRegister &= BR_CLEAR_MASK;
-            tempRegister |= SPI_BaudRatePrescaler_4;
-            break;
-
-        case 8:
-            tempRegister &= BR_CLEAR_MASK;
-            tempRegister |= SPI_BaudRatePrescaler_8;
-            break;
-
-        case 16:
-            tempRegister &= BR_CLEAR_MASK;
-            tempRegister |= SPI_BaudRatePrescaler_16;
-            break;
-
-        case 32:
-            tempRegister &= BR_CLEAR_MASK;
-            tempRegister |= SPI_BaudRatePrescaler_32;
-            break;
-
-        case 64:
-            tempRegister &= BR_CLEAR_MASK;
-            tempRegister |= SPI_BaudRatePrescaler_64;
-            break;
-
-        case 128:
-            tempRegister &= BR_CLEAR_MASK;
-            tempRegister |= SPI_BaudRatePrescaler_128;
-            break;
-
-        case 256:
-            tempRegister &= BR_CLEAR_MASK;
-            tempRegister |= SPI_BaudRatePrescaler_256;
-            break;
-    }
-
-    SPI1->CR1 = tempRegister;
-
-    SPI_Cmd(SPI1, ENABLE);
-}
 
 
 uint32_t micros(void)
@@ -505,11 +377,6 @@ void delay_us(uint32_t us) {
 }
 
 
-/**
-  * @brief  Inserts a delay time.
-  * @param  nTime: specifies the delay time length, in 10 ms.
-  * @retval None
-  */
 void delay_ms(uint32_t ms)
 {
     delay_us(ms * 1000);
@@ -528,6 +395,7 @@ void TimingDelay_Decrement(void)
   * @param  None
   * @retval None
   */
+
 void Fail_Handler(void)
 {
     /* Erase last sector */

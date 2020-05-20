@@ -104,7 +104,7 @@ void USB_OTG_BSP_Init(USB_OTG_CORE_HANDLE *pdev)
   
  
  #ifdef USE_USB_OTG_FS 
-    /* Moved to setup.c due to SPI usage */
+    /* Moved to system_init.c due to SPI usage */
   RCC_AHB1PeriphClockCmd( RCC_AHB1Periph_GPIOA , ENABLE);
   
   /* Configure SOF VBUS ID DM DP Pins */

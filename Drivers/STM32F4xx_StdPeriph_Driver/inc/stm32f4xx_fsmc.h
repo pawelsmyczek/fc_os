@@ -53,7 +53,7 @@
 typedef struct
 {
   uint32_t FSMC_AddressSetupTime;       /*!< Defines the number of HCLK cycles to configure
-                                             the duration of the address setup time. 
+                                             the duration of the address system_init time.
                                              This parameter can be a value between 0 and 0xF.
                                              @note This parameter is not used with synchronous NOR Flash memories. */
 
@@ -63,7 +63,7 @@ typedef struct
                                              @note This parameter is not used with synchronous NOR Flash memories.*/
 
   uint32_t FSMC_DataSetupTime;          /*!< Defines the number of HCLK cycles to configure
-                                             the duration of the data setup time.
+                                             the duration of the data system_init time.
                                              This parameter can be a value between 0 and 0xFF.
                                              @note This parameter is used for SRAMs, ROMs and asynchronous multiplexed NOR Flash memories. */
 
@@ -151,7 +151,7 @@ typedef struct
   */
 typedef struct
 {
-  uint32_t FSMC_SetupTime;      /*!< Defines the number of HCLK cycles to setup address before
+  uint32_t FSMC_SetupTime;      /*!< Defines the number of HCLK cycles to system_init address before
                                      the command assertion for NAND Flash read or write access
                                      to common/Attribute or I/O memory space (depending on
                                      the memory space timing to be configured).

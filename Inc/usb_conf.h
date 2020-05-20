@@ -56,11 +56,11 @@
 /*******************************************************************************
 *                      FIFO Size Configuration in Device mode
 *  
-*  (i) Receive data FIFO size = RAM for setup packets + 
+*  (i) Receive data FIFO size = RAM for system_init packets +
 *                   OUT endpoint control information +
 *                   data OUT packets + miscellaneous
 *      Space = ONE 32-bits words
-*     --> RAM for setup packets = 10 spaces
+*     --> RAM for system_init packets = 10 spaces
 *        (n is the nbr of CTRL EPs the device core supports) 
 *     --> OUT EP CTRL info      = 1 space
 *        (one space for status information written to the FIFO along with each 

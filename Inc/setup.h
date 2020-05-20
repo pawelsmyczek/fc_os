@@ -8,13 +8,13 @@
 #include "stm32f4xx.h"
 #include "mpu6000.h"
 #include "pid.h"
+#include "spi.h"
 #include <stdbool.h>
 #include "usbd_cdc_core.h"
 #include "usbd_usr.h"
 #include "usbd_desc.h"
 #include "usbd_cdc_vcp.h"
 #include "kalman_filter.h"
-//#include "stm32f4_discovery.h"
 
 #define TIM_ARR                          (uint16_t)1999
 #define TIM_CCR                          (uint16_t)1000
@@ -29,9 +29,14 @@
 #define MOTOR_4     3
 
 
-RCC_ClocksTypeDef RCC_Clocks;
+RCC_ClocksTypeDef           RCC_Clocks;
+GPIO_InitTypeDef            GPIO_InitStructure;
+TIM_TimeBaseInitTypeDef     TIM_TimeBaseInitStructure;
+TIM_OCInitTypeDef           TIM_OCInitStructure;
+SPI_InitTypeDef             SPI_InitStruct;
 
-static __IO uint32_t elapsed_ms_since_start;
+
+__IO uint32_t elapsed_ms_since_start;
 __IO uint32_t sysTickCycleCounter;
 __IO uint32_t usTicks;
 
@@ -41,19 +46,15 @@ PIDControl pid_z_velocity;
 char serial_out[70];
 
 
-void setup(void);
-void SysTick_Handler(void);
 void system_init(void);
+void SysTick_Handler(void);
+void system_clock_init(void);
 void init_clocks(void);
 void init_timers(void);
 void init_motors(void);
 void write_motor(uint8_t channel, uint16_t value);
 void toggle_leds_on_start(void);
 void gpio_inits(void);
-int spi_init(void);
-void spi_tx(uint8_t address, uint8_t data);
-uint8_t spi_transfer(uint8_t data);
-void set_spi_divisor(uint16_t data);
 void usart_inits(void);
 
 uint32_t millis(void);

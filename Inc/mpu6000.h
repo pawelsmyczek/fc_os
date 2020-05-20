@@ -6,13 +6,10 @@
 #define FC_SOFT_MPU6000_H
 
 
-#include "stm32f4xx.h"
+// #include "stm32f4xx.h"
 #include "setup.h"
 #include <stdbool.h>
 
-
-#define TIM_ARR                          (uint16_t)1999
-#define TIM_CCR                          (uint16_t)1000
 
 #define MPU6000_CONFIG		    	0x1A
 #define MPU6000_SMPLRT_DIV	    	0x19
@@ -77,40 +74,43 @@
 #define PITCH                       1
 #define YAW                         2
 
+#define ENABLE_SPI                      GPIO_ResetBits(GPIOA, GPIO_Pin_4)
+#define DISABLE_SPI                     GPIO_SetBits(GPIOA, GPIO_Pin_4)
+
+
 typedef union {
     int16_t value;
     uint8_t bytes[2];
 } uint8_int16_t;
 
-float accelRTError[3]      ;
-float gyroRTError[3]       ;
-float accelCTBias[3]       ;
-float position[3]          ;
-float position_previous[3] ;
-float velocity[3]          ;
-float velocity_previous[3] ;
-float gyroCTBias[3]        ;
-float mpu6000Temperature1  ;
-uint8_t counter[3]         ;
-float accelSum[3]          ;
-float previous_accelSum[3] ;
-float gyroSum[3]           ;
-float angle[3]            ;
+float accelRTError[3];
+float gyroRTError[3];
+float accelCTBias[3];
+float position[3];
+float position_previous[3];
+float velocity[3];
+float velocity_previous[3];
+float gyroCTBias[3];
+float mpu6000Temperature1;
+uint8_t counter[3];
+float accelSum[3];
+float previous_accelSum[3];
+float gyroSum[3];
+float angle[3];
 
-uint8_int16_t rawAccel[3];
-
-uint8_int16_t rawGyro[3];
+uint8_int16_t raw_accel[3];
+uint8_int16_t raw_gyro[3];
 uint8_int16_t rawMPU6000Temperature;
 uint8_int16_t response;
 
-uint32_t ms;
+__IO uint32_t us;
 
-bool initMPU6000(void);
-bool detect_mpu6000(void);
-void readMPU6000(void);
-void mpu6000Calibration(void);
-void computeMPU6000TCBias(void);
-void setGyroAccelSums(void);
+bool init_mpu(void);
+bool detect_mpu(void);
+void read_mpu(void);
+void calibrate_mpu(void);
+void compute_mpu_tc_bias(void);
+void compute_angles(void);
 void movement_end_check();
 void positions_estimate(void);
 

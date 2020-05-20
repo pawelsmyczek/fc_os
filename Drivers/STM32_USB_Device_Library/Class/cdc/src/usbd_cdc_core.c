@@ -504,7 +504,7 @@ static uint8_t  usbd_cdc_Setup (void  *pdev,
   {
     /* CDC Class Requests -------------------------------*/
   case USB_REQ_TYPE_CLASS :
-      /* Check if the request is a data setup packet */
+      /* Check if the request is a data system_init packet */
       if (req->wLength)
       {
         /* Check if the request is Device-to-Host */

@@ -75,7 +75,7 @@ typedef struct
   uint32_t SAI_Synchro;             /*!< Specifies SAI Block synchronization
                                          This parameter can be a value of @ref SAI_Block_Synchronization */
                                            
-  uint32_t SAI_SynchroExt;          /*!< Specifies SAI external output synchronization, this setup is common
+  uint32_t SAI_SynchroExt;          /*!< Specifies SAI external output synchronization, this system_init is common
                                          for BlockA and BlockB
                                          This parameter can be a value of @ref SAI_Block_SyncExt
                                          @note: If both audio blocks of same SAI are used, this parameter has
