@@ -1,0 +1,9 @@
+.cproject
+.idea/
+.mxproject
+.project
+*.xml
+
+*.pdf
+cmake-build-debug/
+*.log
