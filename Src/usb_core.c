@@ -855,7 +855,7 @@ uint32_t USB_OTG_ReadHostAllChannels_intr (USB_OTG_CORE_HANDLE *pdev)
 * @brief  USB_OTG_ResetPort : Reset Host Port
 * @param  pdev : Selected device
 * @retval status
-* @note : (1)The application must wait at least 10 ms (+ 10 ms security)
+* @note : (1)The application must wait at least 10 us (+ 10 us security)
 *   before clearing the reset bit.
 */
 uint32_t USB_OTG_ResetPort(USB_OTG_CORE_HANDLE *pdev)
@@ -1593,7 +1593,7 @@ USB_OTG_STS USB_OTG_EPDeactivate(USB_OTG_CORE_HANDLE *pdev , USB_OTG_EP *ep)
 
 
 /**
-* @brief  USB_OTG_EPStartXfer : Handle the setup for data xfer for an EP and 
+* @brief  USB_OTG_EPStartXfer : Handle the system_init for data xfer for an EP and
 *         starts the xfer
 * @param  pdev : Selected device
 * @retval USB_OTG_STS : status
@@ -1725,7 +1725,7 @@ USB_OTG_STS USB_OTG_EPStartXfer(USB_OTG_CORE_HANDLE *pdev , USB_OTG_EP *ep)
 
 
 /**
-* @brief  USB_OTG_EP0StartXfer : Handle the setup for a data xfer for EP0 and 
+* @brief  USB_OTG_EP0StartXfer : Handle the system_init for a data xfer for EP0 and
 *         starts the xfer
 * @param  pdev : Selected device
 * @retval USB_OTG_STS : status

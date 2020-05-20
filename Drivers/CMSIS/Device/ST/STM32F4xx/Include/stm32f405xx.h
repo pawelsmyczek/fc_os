@@ -6765,7 +6765,7 @@ typedef struct
 /******************  Bit definition for FSMC_BTR1 register  ******************/
 #define FSMC_BTR1_ADDSET_Pos         (0U)                                      
 #define FSMC_BTR1_ADDSET_Msk         (0xFUL << FSMC_BTR1_ADDSET_Pos)            /*!< 0x0000000F */
-#define FSMC_BTR1_ADDSET             FSMC_BTR1_ADDSET_Msk                      /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define FSMC_BTR1_ADDSET             FSMC_BTR1_ADDSET_Msk                      /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define FSMC_BTR1_ADDSET_0           (0x1UL << FSMC_BTR1_ADDSET_Pos)            /*!< 0x00000001 */
 #define FSMC_BTR1_ADDSET_1           (0x2UL << FSMC_BTR1_ADDSET_Pos)            /*!< 0x00000002 */
 #define FSMC_BTR1_ADDSET_2           (0x4UL << FSMC_BTR1_ADDSET_Pos)            /*!< 0x00000004 */
@@ -6824,7 +6824,7 @@ typedef struct
 /******************  Bit definition for FSMC_BTR2 register  *******************/
 #define FSMC_BTR2_ADDSET_Pos         (0U)                                      
 #define FSMC_BTR2_ADDSET_Msk         (0xFUL << FSMC_BTR2_ADDSET_Pos)            /*!< 0x0000000F */
-#define FSMC_BTR2_ADDSET             FSMC_BTR2_ADDSET_Msk                      /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define FSMC_BTR2_ADDSET             FSMC_BTR2_ADDSET_Msk                      /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define FSMC_BTR2_ADDSET_0           (0x1UL << FSMC_BTR2_ADDSET_Pos)            /*!< 0x00000001 */
 #define FSMC_BTR2_ADDSET_1           (0x2UL << FSMC_BTR2_ADDSET_Pos)            /*!< 0x00000002 */
 #define FSMC_BTR2_ADDSET_2           (0x4UL << FSMC_BTR2_ADDSET_Pos)            /*!< 0x00000004 */
@@ -6883,7 +6883,7 @@ typedef struct
 /*******************  Bit definition for FSMC_BTR3 register  *******************/
 #define FSMC_BTR3_ADDSET_Pos         (0U)                                      
 #define FSMC_BTR3_ADDSET_Msk         (0xFUL << FSMC_BTR3_ADDSET_Pos)            /*!< 0x0000000F */
-#define FSMC_BTR3_ADDSET             FSMC_BTR3_ADDSET_Msk                      /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define FSMC_BTR3_ADDSET             FSMC_BTR3_ADDSET_Msk                      /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define FSMC_BTR3_ADDSET_0           (0x1UL << FSMC_BTR3_ADDSET_Pos)            /*!< 0x00000001 */
 #define FSMC_BTR3_ADDSET_1           (0x2UL << FSMC_BTR3_ADDSET_Pos)            /*!< 0x00000002 */
 #define FSMC_BTR3_ADDSET_2           (0x4UL << FSMC_BTR3_ADDSET_Pos)            /*!< 0x00000004 */
@@ -6942,7 +6942,7 @@ typedef struct
 /******************  Bit definition for FSMC_BTR4 register  *******************/
 #define FSMC_BTR4_ADDSET_Pos         (0U)                                      
 #define FSMC_BTR4_ADDSET_Msk         (0xFUL << FSMC_BTR4_ADDSET_Pos)            /*!< 0x0000000F */
-#define FSMC_BTR4_ADDSET             FSMC_BTR4_ADDSET_Msk                      /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define FSMC_BTR4_ADDSET             FSMC_BTR4_ADDSET_Msk                      /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define FSMC_BTR4_ADDSET_0           (0x1UL << FSMC_BTR4_ADDSET_Pos)            /*!< 0x00000001 */
 #define FSMC_BTR4_ADDSET_1           (0x2UL << FSMC_BTR4_ADDSET_Pos)            /*!< 0x00000002 */
 #define FSMC_BTR4_ADDSET_2           (0x4UL << FSMC_BTR4_ADDSET_Pos)            /*!< 0x00000004 */
@@ -7001,7 +7001,7 @@ typedef struct
 /******************  Bit definition for FSMC_BWTR1 register  ******************/
 #define FSMC_BWTR1_ADDSET_Pos        (0U)                                      
 #define FSMC_BWTR1_ADDSET_Msk        (0xFUL << FSMC_BWTR1_ADDSET_Pos)           /*!< 0x0000000F */
-#define FSMC_BWTR1_ADDSET            FSMC_BWTR1_ADDSET_Msk                     /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define FSMC_BWTR1_ADDSET            FSMC_BWTR1_ADDSET_Msk                     /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define FSMC_BWTR1_ADDSET_0          (0x1UL << FSMC_BWTR1_ADDSET_Pos)           /*!< 0x00000001 */
 #define FSMC_BWTR1_ADDSET_1          (0x2UL << FSMC_BWTR1_ADDSET_Pos)           /*!< 0x00000002 */
 #define FSMC_BWTR1_ADDSET_2          (0x4UL << FSMC_BWTR1_ADDSET_Pos)           /*!< 0x00000004 */
@@ -7044,7 +7044,7 @@ typedef struct
 /******************  Bit definition for FSMC_BWTR2 register  ******************/
 #define FSMC_BWTR2_ADDSET_Pos        (0U)                                      
 #define FSMC_BWTR2_ADDSET_Msk        (0xFUL << FSMC_BWTR2_ADDSET_Pos)           /*!< 0x0000000F */
-#define FSMC_BWTR2_ADDSET            FSMC_BWTR2_ADDSET_Msk                     /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define FSMC_BWTR2_ADDSET            FSMC_BWTR2_ADDSET_Msk                     /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define FSMC_BWTR2_ADDSET_0          (0x1UL << FSMC_BWTR2_ADDSET_Pos)           /*!< 0x00000001 */
 #define FSMC_BWTR2_ADDSET_1          (0x2UL << FSMC_BWTR2_ADDSET_Pos)           /*!< 0x00000002 */
 #define FSMC_BWTR2_ADDSET_2          (0x4UL << FSMC_BWTR2_ADDSET_Pos)           /*!< 0x00000004 */
@@ -7087,7 +7087,7 @@ typedef struct
 /******************  Bit definition for FSMC_BWTR3 register  ******************/
 #define FSMC_BWTR3_ADDSET_Pos        (0U)                                      
 #define FSMC_BWTR3_ADDSET_Msk        (0xFUL << FSMC_BWTR3_ADDSET_Pos)           /*!< 0x0000000F */
-#define FSMC_BWTR3_ADDSET            FSMC_BWTR3_ADDSET_Msk                     /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define FSMC_BWTR3_ADDSET            FSMC_BWTR3_ADDSET_Msk                     /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define FSMC_BWTR3_ADDSET_0          (0x1UL << FSMC_BWTR3_ADDSET_Pos)           /*!< 0x00000001 */
 #define FSMC_BWTR3_ADDSET_1          (0x2UL << FSMC_BWTR3_ADDSET_Pos)           /*!< 0x00000002 */
 #define FSMC_BWTR3_ADDSET_2          (0x4UL << FSMC_BWTR3_ADDSET_Pos)           /*!< 0x00000004 */
@@ -7130,7 +7130,7 @@ typedef struct
 /******************  Bit definition for FSMC_BWTR4 register  ******************/
 #define FSMC_BWTR4_ADDSET_Pos        (0U)                                      
 #define FSMC_BWTR4_ADDSET_Msk        (0xFUL << FSMC_BWTR4_ADDSET_Pos)           /*!< 0x0000000F */
-#define FSMC_BWTR4_ADDSET            FSMC_BWTR4_ADDSET_Msk                     /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define FSMC_BWTR4_ADDSET            FSMC_BWTR4_ADDSET_Msk                     /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define FSMC_BWTR4_ADDSET_0          (0x1UL << FSMC_BWTR4_ADDSET_Pos)           /*!< 0x00000001 */
 #define FSMC_BWTR4_ADDSET_1          (0x2UL << FSMC_BWTR4_ADDSET_Pos)           /*!< 0x00000002 */
 #define FSMC_BWTR4_ADDSET_2          (0x4UL << FSMC_BWTR4_ADDSET_Pos)           /*!< 0x00000004 */
@@ -7374,7 +7374,7 @@ typedef struct
 /******************  Bit definition for FSMC_PMEM2 register  ******************/
 #define FSMC_PMEM2_MEMSET2_Pos       (0U)                                      
 #define FSMC_PMEM2_MEMSET2_Msk       (0xFFUL << FSMC_PMEM2_MEMSET2_Pos)         /*!< 0x000000FF */
-#define FSMC_PMEM2_MEMSET2           FSMC_PMEM2_MEMSET2_Msk                    /*!<MEMSET2[7:0] bits (Common memory 2 setup time) */
+#define FSMC_PMEM2_MEMSET2           FSMC_PMEM2_MEMSET2_Msk                    /*!<MEMSET2[7:0] bits (Common memory 2 system_init time) */
 #define FSMC_PMEM2_MEMSET2_0         (0x01UL << FSMC_PMEM2_MEMSET2_Pos)         /*!< 0x00000001 */
 #define FSMC_PMEM2_MEMSET2_1         (0x02UL << FSMC_PMEM2_MEMSET2_Pos)         /*!< 0x00000002 */
 #define FSMC_PMEM2_MEMSET2_2         (0x04UL << FSMC_PMEM2_MEMSET2_Pos)         /*!< 0x00000004 */
@@ -7423,7 +7423,7 @@ typedef struct
 /******************  Bit definition for FSMC_PMEM3 register  ******************/
 #define FSMC_PMEM3_MEMSET3_Pos       (0U)                                      
 #define FSMC_PMEM3_MEMSET3_Msk       (0xFFUL << FSMC_PMEM3_MEMSET3_Pos)         /*!< 0x000000FF */
-#define FSMC_PMEM3_MEMSET3           FSMC_PMEM3_MEMSET3_Msk                    /*!<MEMSET3[7:0] bits (Common memory 3 setup time) */
+#define FSMC_PMEM3_MEMSET3           FSMC_PMEM3_MEMSET3_Msk                    /*!<MEMSET3[7:0] bits (Common memory 3 system_init time) */
 #define FSMC_PMEM3_MEMSET3_0         (0x01UL << FSMC_PMEM3_MEMSET3_Pos)         /*!< 0x00000001 */
 #define FSMC_PMEM3_MEMSET3_1         (0x02UL << FSMC_PMEM3_MEMSET3_Pos)         /*!< 0x00000002 */
 #define FSMC_PMEM3_MEMSET3_2         (0x04UL << FSMC_PMEM3_MEMSET3_Pos)         /*!< 0x00000004 */
@@ -7472,7 +7472,7 @@ typedef struct
 /******************  Bit definition for FSMC_PMEM4 register  ******************/
 #define FSMC_PMEM4_MEMSET4_Pos       (0U)                                      
 #define FSMC_PMEM4_MEMSET4_Msk       (0xFFUL << FSMC_PMEM4_MEMSET4_Pos)         /*!< 0x000000FF */
-#define FSMC_PMEM4_MEMSET4           FSMC_PMEM4_MEMSET4_Msk                    /*!<MEMSET4[7:0] bits (Common memory 4 setup time) */
+#define FSMC_PMEM4_MEMSET4           FSMC_PMEM4_MEMSET4_Msk                    /*!<MEMSET4[7:0] bits (Common memory 4 system_init time) */
 #define FSMC_PMEM4_MEMSET4_0         (0x01UL << FSMC_PMEM4_MEMSET4_Pos)         /*!< 0x00000001 */
 #define FSMC_PMEM4_MEMSET4_1         (0x02UL << FSMC_PMEM4_MEMSET4_Pos)         /*!< 0x00000002 */
 #define FSMC_PMEM4_MEMSET4_2         (0x04UL << FSMC_PMEM4_MEMSET4_Pos)         /*!< 0x00000004 */
@@ -7521,7 +7521,7 @@ typedef struct
 /******************  Bit definition for FSMC_PATT2 register  ******************/
 #define FSMC_PATT2_ATTSET2_Pos       (0U)                                      
 #define FSMC_PATT2_ATTSET2_Msk       (0xFFUL << FSMC_PATT2_ATTSET2_Pos)         /*!< 0x000000FF */
-#define FSMC_PATT2_ATTSET2           FSMC_PATT2_ATTSET2_Msk                    /*!<ATTSET2[7:0] bits (Attribute memory 2 setup time) */
+#define FSMC_PATT2_ATTSET2           FSMC_PATT2_ATTSET2_Msk                    /*!<ATTSET2[7:0] bits (Attribute memory 2 system_init time) */
 #define FSMC_PATT2_ATTSET2_0         (0x01UL << FSMC_PATT2_ATTSET2_Pos)         /*!< 0x00000001 */
 #define FSMC_PATT2_ATTSET2_1         (0x02UL << FSMC_PATT2_ATTSET2_Pos)         /*!< 0x00000002 */
 #define FSMC_PATT2_ATTSET2_2         (0x04UL << FSMC_PATT2_ATTSET2_Pos)         /*!< 0x00000004 */
@@ -7570,7 +7570,7 @@ typedef struct
 /******************  Bit definition for FSMC_PATT3 register  ******************/
 #define FSMC_PATT3_ATTSET3_Pos       (0U)                                      
 #define FSMC_PATT3_ATTSET3_Msk       (0xFFUL << FSMC_PATT3_ATTSET3_Pos)         /*!< 0x000000FF */
-#define FSMC_PATT3_ATTSET3           FSMC_PATT3_ATTSET3_Msk                    /*!<ATTSET3[7:0] bits (Attribute memory 3 setup time) */
+#define FSMC_PATT3_ATTSET3           FSMC_PATT3_ATTSET3_Msk                    /*!<ATTSET3[7:0] bits (Attribute memory 3 system_init time) */
 #define FSMC_PATT3_ATTSET3_0         (0x01UL << FSMC_PATT3_ATTSET3_Pos)         /*!< 0x00000001 */
 #define FSMC_PATT3_ATTSET3_1         (0x02UL << FSMC_PATT3_ATTSET3_Pos)         /*!< 0x00000002 */
 #define FSMC_PATT3_ATTSET3_2         (0x04UL << FSMC_PATT3_ATTSET3_Pos)         /*!< 0x00000004 */
@@ -7619,7 +7619,7 @@ typedef struct
 /******************  Bit definition for FSMC_PATT4 register  ******************/
 #define FSMC_PATT4_ATTSET4_Pos       (0U)                                      
 #define FSMC_PATT4_ATTSET4_Msk       (0xFFUL << FSMC_PATT4_ATTSET4_Pos)         /*!< 0x000000FF */
-#define FSMC_PATT4_ATTSET4           FSMC_PATT4_ATTSET4_Msk                    /*!<ATTSET4[7:0] bits (Attribute memory 4 setup time) */
+#define FSMC_PATT4_ATTSET4           FSMC_PATT4_ATTSET4_Msk                    /*!<ATTSET4[7:0] bits (Attribute memory 4 system_init time) */
 #define FSMC_PATT4_ATTSET4_0         (0x01UL << FSMC_PATT4_ATTSET4_Pos)         /*!< 0x00000001 */
 #define FSMC_PATT4_ATTSET4_1         (0x02UL << FSMC_PATT4_ATTSET4_Pos)         /*!< 0x00000002 */
 #define FSMC_PATT4_ATTSET4_2         (0x04UL << FSMC_PATT4_ATTSET4_Pos)         /*!< 0x00000004 */
@@ -7668,7 +7668,7 @@ typedef struct
 /******************  Bit definition for FSMC_PIO4 register  *******************/
 #define FSMC_PIO4_IOSET4_Pos         (0U)                                      
 #define FSMC_PIO4_IOSET4_Msk         (0xFFUL << FSMC_PIO4_IOSET4_Pos)           /*!< 0x000000FF */
-#define FSMC_PIO4_IOSET4             FSMC_PIO4_IOSET4_Msk                      /*!<IOSET4[7:0] bits (I/O 4 setup time) */
+#define FSMC_PIO4_IOSET4             FSMC_PIO4_IOSET4_Msk                      /*!<IOSET4[7:0] bits (I/O 4 system_init time) */
 #define FSMC_PIO4_IOSET4_0           (0x01UL << FSMC_PIO4_IOSET4_Pos)           /*!< 0x00000001 */
 #define FSMC_PIO4_IOSET4_1           (0x02UL << FSMC_PIO4_IOSET4_Pos)           /*!< 0x00000002 */
 #define FSMC_PIO4_IOSET4_2           (0x04UL << FSMC_PIO4_IOSET4_Pos)           /*!< 0x00000004 */

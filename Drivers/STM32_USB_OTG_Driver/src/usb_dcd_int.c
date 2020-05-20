@@ -449,7 +449,7 @@ static uint32_t DCD_HandleInEP_ISR(USB_OTG_CORE_HANDLE *pdev)
         {
           if((epnum == 0) && (pdev->dev.device_state == USB_OTG_EP0_STATUS_IN))
           {
-            /* prepare to rx more setup packets */
+            /* prepare to rx more system_init packets */
             USB_OTG_EP0_OutStart(pdev);
           }
         }           
@@ -538,7 +538,7 @@ static uint32_t DCD_HandleOutEP_ISR(USB_OTG_CORE_HANDLE *pdev)
         {
           if((epnum == 0) && (pdev->dev.device_state == USB_OTG_EP0_STATUS_OUT))
           {
-            /* prepare to rx more setup packets */
+            /* prepare to rx more system_init packets */
             USB_OTG_EP0_OutStart(pdev);
           }
         }        
@@ -558,7 +558,7 @@ static uint32_t DCD_HandleOutEP_ISR(USB_OTG_CORE_HANDLE *pdev)
       if ( doepint.b.setup )
       {
         
-        /* inform the upper layer that a setup packet is available */
+        /* inform the upper layer that a system_init packet is available */
         /* SETUP COMPLETE */
         USBD_DCD_INT_fops->SetupStage(pdev);
         CLEAR_OUT_EP_INTR(epnum, setup);
@@ -630,7 +630,7 @@ static uint32_t DCD_HandleRxStatusQueueLevel_ISR(USB_OTG_CORE_HANDLE *pdev)
   case STS_SETUP_COMP:
     break;
   case STS_SETUP_UPDT:
-    /* Copy the setup packet received in FIFO into the setup buffer in RAM */
+    /* Copy the setup packet received in FIFO into the system_init buffer in RAM */
     USB_OTG_ReadPacket(pdev , pdev->dev.setup_packet, 8);
     ep->xfer_count += status.b.bcnt;
     break;
@@ -760,7 +760,7 @@ static uint32_t DCD_HandleUsbReset_ISR(USB_OTG_CORE_HANDLE *pdev)
   USB_OTG_WRITE_REG32( &pdev->regs.DREGS->DCFG, dcfg.d32);
   
   
-  /* setup EP0 to receive SETUP packets */
+  /* system_init EP0 to receive SETUP packets */
   USB_OTG_EP0_OutStart(pdev);
   
   /* Clear interrupt */

@@ -5233,7 +5233,7 @@ typedef struct
 #define  FSMC_BCR4_CBURSTRW                  ((uint32_t)0x00080000)        /*!<Write burst enable                     */
 
 /******************  Bit definition for FSMC_BTR1 register  ******************/
-#define  FSMC_BTR1_ADDSET                    ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define  FSMC_BTR1_ADDSET                    ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define  FSMC_BTR1_ADDSET_0                  ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_BTR1_ADDSET_1                  ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_BTR1_ADDSET_2                  ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5274,7 +5274,7 @@ typedef struct
 #define  FSMC_BTR1_ACCMOD_1                  ((uint32_t)0x20000000)        /*!<Bit 1 */
 
 /******************  Bit definition for FSMC_BTR2 register  *******************/
-#define  FSMC_BTR2_ADDSET                    ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define  FSMC_BTR2_ADDSET                    ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define  FSMC_BTR2_ADDSET_0                  ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_BTR2_ADDSET_1                  ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_BTR2_ADDSET_2                  ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5315,7 +5315,7 @@ typedef struct
 #define  FSMC_BTR2_ACCMOD_1                  ((uint32_t)0x20000000)        /*!<Bit 1 */
 
 /*******************  Bit definition for FSMC_BTR3 register  *******************/
-#define  FSMC_BTR3_ADDSET                    ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define  FSMC_BTR3_ADDSET                    ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define  FSMC_BTR3_ADDSET_0                  ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_BTR3_ADDSET_1                  ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_BTR3_ADDSET_2                  ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5356,7 +5356,7 @@ typedef struct
 #define  FSMC_BTR3_ACCMOD_1                  ((uint32_t)0x20000000)        /*!<Bit 1 */
 
 /******************  Bit definition for FSMC_BTR4 register  *******************/
-#define  FSMC_BTR4_ADDSET                    ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define  FSMC_BTR4_ADDSET                    ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define  FSMC_BTR4_ADDSET_0                  ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_BTR4_ADDSET_1                  ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_BTR4_ADDSET_2                  ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5397,7 +5397,7 @@ typedef struct
 #define  FSMC_BTR4_ACCMOD_1                  ((uint32_t)0x20000000)        /*!<Bit 1 */
 
 /******************  Bit definition for FSMC_BWTR1 register  ******************/
-#define  FSMC_BWTR1_ADDSET                   ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define  FSMC_BWTR1_ADDSET                   ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define  FSMC_BWTR1_ADDSET_0                 ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_BWTR1_ADDSET_1                 ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_BWTR1_ADDSET_2                 ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5426,7 +5426,7 @@ typedef struct
 #define  FSMC_BWTR1_ACCMOD_1                 ((uint32_t)0x20000000)        /*!<Bit 1 */
 
 /******************  Bit definition for FSMC_BWTR2 register  ******************/
-#define  FSMC_BWTR2_ADDSET                   ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define  FSMC_BWTR2_ADDSET                   ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define  FSMC_BWTR2_ADDSET_0                 ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_BWTR2_ADDSET_1                 ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_BWTR2_ADDSET_2                 ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5455,7 +5455,7 @@ typedef struct
 #define  FSMC_BWTR2_ACCMOD_1                 ((uint32_t)0x20000000)        /*!<Bit 1 */
 
 /******************  Bit definition for FSMC_BWTR3 register  ******************/
-#define  FSMC_BWTR3_ADDSET                   ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define  FSMC_BWTR3_ADDSET                   ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define  FSMC_BWTR3_ADDSET_0                 ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_BWTR3_ADDSET_1                 ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_BWTR3_ADDSET_2                 ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5484,7 +5484,7 @@ typedef struct
 #define  FSMC_BWTR3_ACCMOD_1                 ((uint32_t)0x20000000)        /*!<Bit 1 */
 
 /******************  Bit definition for FSMC_BWTR4 register  ******************/
-#define  FSMC_BWTR4_ADDSET                   ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address setup phase duration) */
+#define  FSMC_BWTR4_ADDSET                   ((uint32_t)0x0000000F)        /*!<ADDSET[3:0] bits (Address system_init phase duration) */
 #define  FSMC_BWTR4_ADDSET_0                 ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_BWTR4_ADDSET_1                 ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_BWTR4_ADDSET_2                 ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5624,7 +5624,7 @@ typedef struct
 #define  FSMC_SR4_FEMPT                      ((uint8_t)0x40)               /*!<FIFO empty */
 
 /******************  Bit definition for FSMC_PMEM2 register  ******************/
-#define  FSMC_PMEM2_MEMSET2                  ((uint32_t)0x000000FF)        /*!<MEMSET2[7:0] bits (Common memory 2 setup time) */
+#define  FSMC_PMEM2_MEMSET2                  ((uint32_t)0x000000FF)        /*!<MEMSET2[7:0] bits (Common memory 2 system_init time) */
 #define  FSMC_PMEM2_MEMSET2_0                ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_PMEM2_MEMSET2_1                ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_PMEM2_MEMSET2_2                ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5665,7 +5665,7 @@ typedef struct
 #define  FSMC_PMEM2_MEMHIZ2_7                ((uint32_t)0x80000000)        /*!<Bit 7 */
 
 /******************  Bit definition for FSMC_PMEM3 register  ******************/
-#define  FSMC_PMEM3_MEMSET3                  ((uint32_t)0x000000FF)        /*!<MEMSET3[7:0] bits (Common memory 3 setup time) */
+#define  FSMC_PMEM3_MEMSET3                  ((uint32_t)0x000000FF)        /*!<MEMSET3[7:0] bits (Common memory 3 system_init time) */
 #define  FSMC_PMEM3_MEMSET3_0                ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_PMEM3_MEMSET3_1                ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_PMEM3_MEMSET3_2                ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5706,7 +5706,7 @@ typedef struct
 #define  FSMC_PMEM3_MEMHIZ3_7                ((uint32_t)0x80000000)        /*!<Bit 7 */
 
 /******************  Bit definition for FSMC_PMEM4 register  ******************/
-#define  FSMC_PMEM4_MEMSET4                  ((uint32_t)0x000000FF)        /*!<MEMSET4[7:0] bits (Common memory 4 setup time) */
+#define  FSMC_PMEM4_MEMSET4                  ((uint32_t)0x000000FF)        /*!<MEMSET4[7:0] bits (Common memory 4 system_init time) */
 #define  FSMC_PMEM4_MEMSET4_0                ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_PMEM4_MEMSET4_1                ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_PMEM4_MEMSET4_2                ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5747,7 +5747,7 @@ typedef struct
 #define  FSMC_PMEM4_MEMHIZ4_7                ((uint32_t)0x80000000)        /*!<Bit 7 */
 
 /******************  Bit definition for FSMC_PATT2 register  ******************/
-#define  FSMC_PATT2_ATTSET2                  ((uint32_t)0x000000FF)        /*!<ATTSET2[7:0] bits (Attribute memory 2 setup time) */
+#define  FSMC_PATT2_ATTSET2                  ((uint32_t)0x000000FF)        /*!<ATTSET2[7:0] bits (Attribute memory 2 system_init time) */
 #define  FSMC_PATT2_ATTSET2_0                ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_PATT2_ATTSET2_1                ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_PATT2_ATTSET2_2                ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5788,7 +5788,7 @@ typedef struct
 #define  FSMC_PATT2_ATTHIZ2_7                ((uint32_t)0x80000000)        /*!<Bit 7 */
 
 /******************  Bit definition for FSMC_PATT3 register  ******************/
-#define  FSMC_PATT3_ATTSET3                  ((uint32_t)0x000000FF)        /*!<ATTSET3[7:0] bits (Attribute memory 3 setup time) */
+#define  FSMC_PATT3_ATTSET3                  ((uint32_t)0x000000FF)        /*!<ATTSET3[7:0] bits (Attribute memory 3 system_init time) */
 #define  FSMC_PATT3_ATTSET3_0                ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_PATT3_ATTSET3_1                ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_PATT3_ATTSET3_2                ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5829,7 +5829,7 @@ typedef struct
 #define  FSMC_PATT3_ATTHIZ3_7                ((uint32_t)0x80000000)        /*!<Bit 7 */
 
 /******************  Bit definition for FSMC_PATT4 register  ******************/
-#define  FSMC_PATT4_ATTSET4                  ((uint32_t)0x000000FF)        /*!<ATTSET4[7:0] bits (Attribute memory 4 setup time) */
+#define  FSMC_PATT4_ATTSET4                  ((uint32_t)0x000000FF)        /*!<ATTSET4[7:0] bits (Attribute memory 4 system_init time) */
 #define  FSMC_PATT4_ATTSET4_0                ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_PATT4_ATTSET4_1                ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_PATT4_ATTSET4_2                ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -5870,7 +5870,7 @@ typedef struct
 #define  FSMC_PATT4_ATTHIZ4_7                ((uint32_t)0x80000000)        /*!<Bit 7 */
 
 /******************  Bit definition for FSMC_PIO4 register  *******************/
-#define  FSMC_PIO4_IOSET4                    ((uint32_t)0x000000FF)        /*!<IOSET4[7:0] bits (I/O 4 setup time) */
+#define  FSMC_PIO4_IOSET4                    ((uint32_t)0x000000FF)        /*!<IOSET4[7:0] bits (I/O 4 system_init time) */
 #define  FSMC_PIO4_IOSET4_0                  ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FSMC_PIO4_IOSET4_1                  ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FSMC_PIO4_IOSET4_2                  ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -6481,7 +6481,7 @@ typedef struct
 #define  FMC_PMEM2_MEMHIZ2_7                ((uint32_t)0x80000000)        /*!<Bit 7 */
 
 /******************  Bit definition for FMC_PMEM3 register  ******************/
-#define  FMC_PMEM3_MEMSET3                  ((uint32_t)0x000000FF)        /*!<MEMSET3[7:0] bits (Common memory 3 setup time) */
+#define  FMC_PMEM3_MEMSET3                  ((uint32_t)0x000000FF)        /*!<MEMSET3[7:0] bits (Common memory 3 system_init time) */
 #define  FMC_PMEM3_MEMSET3_0                ((uint32_t)0x00000001)        /*!<Bit 0 */
 #define  FMC_PMEM3_MEMSET3_1                ((uint32_t)0x00000002)        /*!<Bit 1 */
 #define  FMC_PMEM3_MEMSET3_2                ((uint32_t)0x00000004)        /*!<Bit 2 */
@@ -7429,7 +7429,7 @@ typedef struct
 #define  FMPI2C_TIMINGR_SCLL                    ((uint32_t)0x000000FF)        /*!< SCL low period (master mode)  */
 #define  FMPI2C_TIMINGR_SCLH                    ((uint32_t)0x0000FF00)        /*!< SCL high period (master mode) */
 #define  FMPI2C_TIMINGR_SDADEL                  ((uint32_t)0x000F0000)        /*!< Data hold time                */
-#define  FMPI2C_TIMINGR_SCLDEL                  ((uint32_t)0x00F00000)        /*!< Data setup time               */
+#define  FMPI2C_TIMINGR_SCLDEL                  ((uint32_t)0x00F00000)        /*!< Data system_init time               */
 #define  FMPI2C_TIMINGR_PRESC                   ((uint32_t)0xF0000000)        /*!< Timings prescaler             */
 
 /******************* Bit definition for I2C_TIMEOUTR register *****************/

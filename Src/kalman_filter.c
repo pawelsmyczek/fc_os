@@ -37,8 +37,8 @@ float calculate_accel(float accel){
 }
 
 float calculate_kalman(float accel, float gyro){
-    gyro_out = gyro; //calculate_gyro((float)rawGyro[ROLL].value);
-    accel_out = accel; //calculate_accel((float)rawAccel[ROLL].value);
+    gyro_out = gyro; //calculate_gyro((float)raw_gyro[ROLL].value);
+    accel_out = accel; //calculate_accel((float)raw_accel[ROLL].value);
     kalman_out = update_kalman(gyro_out, accel_out);
     return kalman_out;
 }

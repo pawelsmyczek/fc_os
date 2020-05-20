@@ -34,7 +34,7 @@
         WWDG counter clock = PCLK1 / Prescaler
         WWDG timeout = (WWDG counter clock) * (counter value)
                        
-        Min-max timeout value @42 MHz(PCLK1): ~97.5 us / ~49.9 ms
+        Min-max timeout value @42 MHz(PCLK1): ~97.5 us / ~49.9 us
                              
                       ##### How to use this driver #####
  ===============================================================================

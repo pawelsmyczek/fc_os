@@ -76,7 +76,7 @@
 int main(void)
 {
 
-    setup();
+    system_init();
 
     uint16_t pwm_out = 1000;
     uint16_t pwm_out_high = 1080;
@@ -109,11 +109,11 @@ int main(void)
 //        delay_ms(1);
 //    }
 
-    ms = millis();
+    us = millis();
     while(1)
     {
         GPIO_SetBits(GPIOC, GPIO_Pin_14);
-        setGyroAccelSums();
+        compute_angles();
         positions_estimate();
         /*
          *
@@ -128,7 +128,7 @@ int main(void)
              * */
 
             while(pwm_out++ < pwm_out_high ) {
-                setGyroAccelSums();
+                compute_angles();
                 positions_estimate();
                 pwm_rf = pwm_out; pwm_rb = pwm_out; pwm_lb = pwm_out; pwm_lf = pwm_out;
                 for(uint8_t motor = 0; motor < 4; motor++)
@@ -136,11 +136,11 @@ int main(void)
                 // sprintf(serial_out, "PWM_RF - %u, PWM_RB - %u, PWM_LB - %u, PWM_LF - %u\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf);
                 sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", angle[ROLL], angle[PITCH], angle[YAW]);
                 VCP_send_str(serial_out);
-                delay_ms(1000);
+                delay_ms(1);
             }
 
             while(ellapsed_time++ < test_procedure_time){
-                setGyroAccelSums();
+                compute_angles();
                 positions_estimate();
                 if(ellapsed_time < height_increase_time) (&pid_z_velocity)->set_point = 20.0f;
                 if(ellapsed_time >= height_increase_time) (&pid_z_velocity)->set_point = 0.0f;
@@ -178,7 +178,7 @@ int main(void)
 
 
             while(pwm_out-- > pwm_out_low ) {
-                setGyroAccelSums();
+                compute_angles();
                 positions_estimate();
                 pwm_rf = pwm_out; pwm_rb = pwm_out; pwm_lb = pwm_out; pwm_lf = pwm_out;
                 for (uint8_t motor = 0; motor < 4; motor++)
@@ -204,12 +204,10 @@ int main(void)
 
 //        sprintf(serial_out, "%.3f, %.3f, %.3f\n\r", velocity[ROLL], velocity[PITCH], velocity[YAW]);
 //        VCP_send_str(serial_out);
-        sprintf(serial_out, "GYRO[YAW] - %.1f\n\r", angle[YAW]);
+        sprintf(serial_out, "ACCEL[YAW] - %.1f\n\r", accelSum[YAW]);
         VCP_send_str(serial_out);
-
         GPIO_ResetBits(GPIOC, GPIO_Pin_14);
-
-        delay_ms(1);
+        delay_ms(10);
 	}
 
 
