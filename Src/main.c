@@ -204,7 +204,7 @@ int main(void)
 
 //        sprintf(serial_out, "%.3f, %.3f, %.3f\n\r", velocity[ROLL], velocity[PITCH], velocity[YAW]);
 //        VCP_send_str(serial_out);
-        sprintf(serial_out, "ACCEL[YAW] - %.1f\n\r", accelSum[YAW]);
+        sprintf(serial_out, "ACCEL[YAW] - %.1f\n\r", angle[YAW]);
         VCP_send_str(serial_out);
         GPIO_ResetBits(GPIOC, GPIO_Pin_14);
         delay_ms(10);

@@ -21,7 +21,7 @@ float gyroSum[3]           = {0.0f, 0.0f, 0.0f};
 float angle[3]            = {0.0f, 0.0f, 0.0f};
 const uint16_t SAMPLES_NUM = 20000;
 float oneG = 9.81f;
-
+uint8_t raw_mpu[15] = {MPU6000_ACCEL_XOUT_H | 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 
 bool detect_mpu(void){
@@ -138,6 +138,21 @@ bool init_mpu(void){
 
     delay_ms(100);
 
+    SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource4);
+
+    EXTI_InitTypeDef EXTI_InitStruct;
+    EXTI_InitStruct.EXTI_Line = EXTI_Line4;
+    EXTI_InitStruct.EXTI_LineCmd = ENABLE;
+    EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTI_Init(&EXTI_InitStruct);
+
+    NVIC_InitTypeDef NVIC_InitStruct;
+    NVIC_InitStruct.NVIC_IRQChannel = EXTI4_IRQn;
+    NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 0x04;
+    NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0x04;
+    NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStruct);
 
     ///////////////////////////////////
 
@@ -173,25 +188,38 @@ void read_mpu(void)
 
 }
 
+void data_transfer_callback_mpu(void) {
+    raw_accel[ROLL   ].value       = (int16_t)((raw_mpu[1] << 8) | raw_mpu[2]);
+    raw_accel[PITCH  ].value       = (int16_t)((raw_mpu[3] << 8) | raw_mpu[4]);
+    raw_accel[YAW    ].value       = (int16_t)((raw_mpu[5] << 8) | raw_mpu[6]);
+    rawMPU6000Temperature.value    = (int16_t)((raw_mpu[7] << 8) | raw_mpu[8]);
+    raw_gyro[ROLL    ].value       = (int16_t)((raw_mpu[9] << 8) | raw_mpu[10]);
+    raw_gyro[PITCH   ].value       = (int16_t)((raw_mpu[11] << 8) | raw_mpu[12]);
+    raw_gyro[YAW     ].value       = (int16_t)((raw_mpu[13] << 8) | raw_mpu[14]);
+}
+
+void read_mpu_dma(void){
+    us = micros();
+    raw_mpu[0] = MPU6000_ACCEL_XOUT_H | 0x80;
+    dma_transfer(raw_mpu, raw_mpu, 15, &data_transfer_callback_mpu);
+}
+
 
 void calibrate_mpu(void) {
 
 
-    for (uint16_t samples = 0; samples < SAMPLES_NUM; samples++)
-    {
+    for (uint16_t samples = 0; samples < SAMPLES_NUM; samples++) {
         compute_mpu_tc_bias();
         accelRTError[ROLL ] += ((float)raw_accel[ROLL ].value / 8192.0f) - accelCTBias[ROLL ];
         accelRTError[PITCH] += ((float)raw_accel[PITCH].value / 8192.0f) - accelCTBias[PITCH];
         accelRTError[YAW  ] += ((float)raw_accel[YAW  ].value / 8192.0f) - accelCTBias[YAW  ];
 
-        gyroRTError[ROLL ]  += ((float)raw_gyro[ROLL ].value / 4.1f) - gyroCTBias[ROLL ];
-        gyroRTError[PITCH]  += ((float)raw_gyro[PITCH].value / 4.1f) - gyroCTBias[PITCH];
-        gyroRTError[YAW  ]  += ((float)raw_gyro[YAW  ].value / 4.1f) - gyroCTBias[YAW  ];
-
+        gyroRTError[ROLL ]  += ((float)raw_gyro[ROLL ].value / 8.2f) - gyroCTBias[ROLL ];
+        gyroRTError[PITCH]  += ((float)raw_gyro[PITCH].value / 8.2f) - gyroCTBias[PITCH];
+        gyroRTError[YAW  ]  += ((float)raw_gyro[YAW  ].value / 8.2f) - gyroCTBias[YAW  ];
     }
 
-    for (uint8_t axis = 0; axis < 3; axis++)
-    {
+    for (uint8_t axis = 0; axis < 3; axis++) {
         accelRTError[axis]   = accelRTError[axis] / (float)SAMPLES_NUM;
         gyroRTError[axis] = gyroRTError[axis] / (float)SAMPLES_NUM;
     }
@@ -218,15 +246,15 @@ void compute_mpu_tc_bias(void)
 
 void compute_angles(void){
     uint32_t us_prev = us;
-    us = millis();
-    float seconds_diff = (float)(us - us_prev) / 100.0f;  // should be 1ms, but is 10 us TODO
+    us = micros();
+    float seconds_diff = (float)(us - us_prev) / 100000.0f;  // should be 1us, but is 10 us TODO
     accelSum[ROLL ] = ((float)(raw_accel[ROLL ].value) / 8192.0f) - accelRTError[ROLL ];// asinf(((float)(raw_accel[ROLL ].value) / 16384.0f) / oneG);
     accelSum[PITCH] = ((float)(raw_accel[PITCH].value) / 8192.0f) - accelRTError[PITCH];// asinf((-1*(float)(raw_accel[PITCH].value) / 16384.0f) / oneG);
     accelSum[YAW  ] = ((float)(raw_accel[YAW  ].value) / 8192.0f) - accelRTError[YAW  ];
 
-    gyroSum[ROLL ] += (((((float)raw_gyro[ROLL ].value / 4.1f))) - gyroRTError[ROLL ]) * seconds_diff;//gyroSum[ROLL] + (((float)(raw_gyro[ROLL].value) / 16.4) * seconds_diff);
-    gyroSum[PITCH] += (((((float)raw_gyro[PITCH].value / 4.1f))) - gyroRTError[PITCH]) * seconds_diff; //gyroSum[PITCH] + (((float)(raw_gyro[PITCH].value) / 16.4) * seconds_diff);
-    gyroSum[YAW  ] += (((((float)raw_gyro[YAW  ].value / 4.1f))) - gyroRTError[YAW  ]) * seconds_diff;//gyroSum[YAW] + (((float)(raw_gyro[YAW].value) / 16.4) * seconds_diff);
+    gyroSum[ROLL ] += (((((float)raw_gyro[ROLL ].value / 8.2f))) - gyroRTError[ROLL ]) * seconds_diff;//gyroSum[ROLL] + (((float)(raw_gyro[ROLL].value) / 16.4) * seconds_diff);
+    gyroSum[PITCH] += (((((float)raw_gyro[PITCH].value / 8.2f))) - gyroRTError[PITCH]) * seconds_diff; //gyroSum[PITCH] + (((float)(raw_gyro[PITCH].value) / 16.4) * seconds_diff);
+    gyroSum[YAW  ] += (((((float)raw_gyro[YAW  ].value / 8.2f))) - gyroRTError[YAW  ]) * seconds_diff;//gyroSum[YAW] + (((float)(raw_gyro[YAW].value) / 16.4) * seconds_diff);
 
     angle[ROLL ] = 0.996f * (gyroSum[ROLL ]) + 0.004f * accelSum[ROLL ];
     angle[PITCH] = 0.996f * (gyroSum[PITCH]) + 0.004f * accelSum[PITCH];
@@ -274,5 +302,11 @@ void movement_end_check(void)
 
     if(previous_accelSum[YAW] > -0.05f && previous_accelSum[YAW] < 0.05f) { counter[YAW]++;}  else { counter[YAW] = 0;}
     if (counter[YAW]>=5) { velocity_previous[YAW] = 0.0f;   velocity[YAW] = 0.0f;}
-
 }
+
+
+void EXTI4_IRQHandler(void) {
+    EXTI_ClearITPendingBit(EXTI_Line4);
+    read_mpu_dma();
+}
+

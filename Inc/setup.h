@@ -28,6 +28,7 @@
 #define MOTOR_3     2
 #define MOTOR_4     3
 
+DMA_InitTypeDef             DMA_InitStructure;
 
 RCC_ClocksTypeDef           RCC_Clocks;
 GPIO_InitTypeDef            GPIO_InitStructure;

@@ -114,4 +114,5 @@ void compute_angles(void);
 void movement_end_check();
 void positions_estimate(void);
 
+void EXTI4_IRQHandler(void);
 #endif //FC_SOFT_MPU6000_H
