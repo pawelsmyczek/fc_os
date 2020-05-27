@@ -27,18 +27,18 @@ uint8_t raw_mpu[15] = {MPU6000_ACCEL_XOUT_H | 0x80, 0x00, 0x00, 0x00, 0x00, 0x00
 bool detect_mpu(void){
     unsigned int response_mpu = 0;
 
-    set_spi_divisor(2);
+    set_spi_divisor(&MPU6000, 2);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_PWR_MGMT_1);          // Device Reset
-    spi_transfer(BIT_H_RESET);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_PWR_MGMT_1);          // Device Reset
+    spi_transfer(&MPU6000, BIT_H_RESET);
+    spi_disable(&MPU6000_CS);
 
     uint8_t attemptsRemaining = 5;
     do {
         delay_ms(150);
 
-        const uint8_t whoAmI = spi_transfer(MPU6000_WHOAMI);
+        const uint8_t whoAmI = spi_transfer(&MPU6000, MPU6000_WHOAMI);
         if (whoAmI == MPU6000_WHOAMI) {
             return true;
         }
@@ -48,112 +48,109 @@ bool detect_mpu(void){
 
 bool init_mpu(void){
 
-    set_spi_divisor(2);                         // 21 MHz SPI clock (within 20 +/- 10%)
+    set_spi_divisor(&MPU6000, 2);                         // 21 MHz SPI clock (within 20 +/- 10%)
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_PWR_MGMT_1);          // Device Reset
-    spi_transfer(BIT_H_RESET);
-    DISABLE_SPI;
-
-    delay_ms(150);
-
-    ENABLE_SPI;
-    spi_transfer(SIGNAL_PATH_RESET);
-    spi_transfer(0x07); //
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_PWR_MGMT_1);          // Device Reset
+    spi_transfer(&MPU6000, BIT_H_RESET);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(150);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_PWR_MGMT_1);          // Clock Source PPL with Z axis gyro reference
-    spi_transfer(MPU_CLK_SEL_PLLGYROZ);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, SIGNAL_PATH_RESET);
+    spi_transfer(&MPU6000, 0x07); //
+    spi_disable(&MPU6000_CS);
+
+    delay_ms(150);
+
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_PWR_MGMT_1);          // Clock Source PPL with Z axis gyro reference
+    spi_transfer(&MPU6000, MPU_CLK_SEL_PLLGYROZ);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(1);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_USER_CTRL);           // DISABLE_SPI Primary I2C Interface
-    spi_transfer(BIT_I2C_IF_DIS);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_USER_CTRL);           // spi_disable(&MPU6000_CS) Primary I2C Interface
+    spi_transfer(&MPU6000, BIT_I2C_IF_DIS);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(1);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_PWR_MGMT_2);
-    spi_transfer(0x00);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_PWR_MGMT_2);
+    spi_transfer(&MPU6000, 0x00);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(1);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_SMPLRT_DIV);          // Accel Sample Rate 1000 Hz, Gyro Sample Rate 8000 Hz
-    spi_transfer(0x00);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_SMPLRT_DIV);          // Accel Sample Rate 1000 Hz, Gyro Sample Rate 8000 Hz
+    spi_transfer(&MPU6000, 0x00);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(1);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_CONFIG);              // Accel and Gyro DLPF Setting
-    spi_transfer(BITS_DLPF_CFG_10HZ);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_CONFIG);              // Accel and Gyro DLPF Setting
+    spi_transfer(&MPU6000, BITS_DLPF_CFG_10HZ);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(1);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_ACCEL_CONFIG);        // Accel +/- 4 G Full Scale
-    spi_transfer(BITS_FS_4G);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_ACCEL_CONFIG);        // Accel +/- 4 G Full Scale
+    spi_transfer(&MPU6000, BITS_FS_4G);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(1);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_GYRO_CONFIG);
-    spi_transfer(BITS_FS_2000DPS);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_GYRO_CONFIG);
+    spi_transfer(&MPU6000, BITS_FS_2000DPS);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(1);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_INT_PIN_CFG);
-    spi_transfer(BIT_INT_ANYRD_2CLEAR);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_INT_PIN_CFG);
+    spi_transfer(&MPU6000, BIT_INT_ANYRD_2CLEAR);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(1);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_INT_ENABLE);         // Gyro ENABLE_SPI interrupts
-    spi_transfer(BIT_RAW_RDY_EN);
-    DISABLE_SPI;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_INT_ENABLE);         // Gyro spi_enable(&MPU6000_CS) interrupts
+    spi_transfer(&MPU6000, BIT_RAW_RDY_EN);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(1);
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_WHOAMI | 0x80);
-    response.value = spi_transfer(0x00);
-    DISABLE_SPI;
-
-
-
-    // if(response.value < 100) return false;
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_WHOAMI | 0x80);
+    response.value = spi_transfer(&MPU6000, 0x00);
+    spi_disable(&MPU6000_CS);
 
     delay_ms(100);
 
+    // if(response.value < 100) return false;
+
     SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource4);
 
-    EXTI_InitTypeDef EXTI_InitStruct;
+    EXTI_InitTypeDef            EXTI_InitStruct;
     EXTI_InitStruct.EXTI_Line = EXTI_Line4;
     EXTI_InitStruct.EXTI_LineCmd = ENABLE;
     EXTI_InitStruct.EXTI_Mode = EXTI_Mode_Interrupt;
     EXTI_InitStruct.EXTI_Trigger = EXTI_Trigger_Rising;
     EXTI_Init(&EXTI_InitStruct);
 
-    NVIC_InitTypeDef NVIC_InitStruct;
+    NVIC_InitTypeDef            NVIC_InitStruct;
     NVIC_InitStruct.NVIC_IRQChannel = EXTI4_IRQn;
     NVIC_InitStruct.NVIC_IRQChannelPreemptionPriority = 0x04;
     NVIC_InitStruct.NVIC_IRQChannelSubPriority = 0x04;
     NVIC_InitStruct.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStruct);
-
     ///////////////////////////////////
 
     // delay_ms(100);
@@ -166,25 +163,25 @@ bool init_mpu(void){
 void read_mpu(void)
 {
 
-    ENABLE_SPI;
-    spi_transfer(MPU6000_ACCEL_XOUT_H | 0x80);
-    raw_accel[ROLL   ].bytes[1]            = spi_transfer(0x00);
-    raw_accel[ROLL   ].bytes[0]            = spi_transfer(0x00);
-    raw_accel[PITCH  ].bytes[1]            = spi_transfer(0x00);
-    raw_accel[PITCH  ].bytes[0]            = spi_transfer(0x00);
-    raw_accel[YAW    ].bytes[1]            = spi_transfer(0x00);
-    raw_accel[YAW    ].bytes[0]            = spi_transfer(0x00);
+    spi_enable(&MPU6000_CS);
+    spi_transfer(&MPU6000, MPU6000_ACCEL_XOUT_H | 0x80);
+    raw_accel[ROLL   ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
+    raw_accel[ROLL   ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
+    raw_accel[PITCH  ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
+    raw_accel[PITCH  ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
+    raw_accel[YAW    ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
+    raw_accel[YAW    ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
 
-    rawMPU6000Temperature.bytes[1]        = spi_transfer(0x00);
-    rawMPU6000Temperature.bytes[0]        = spi_transfer(0x00);
+    rawMPU6000Temperature.bytes[1]         = spi_transfer(&MPU6000, 0x00);
+    rawMPU6000Temperature.bytes[0]         = spi_transfer(&MPU6000, 0x00);
 
-    raw_gyro[ROLL    ].bytes[1]            = spi_transfer(0x00);
-    raw_gyro[ROLL    ].bytes[0]            = spi_transfer(0x00);
-    raw_gyro[PITCH   ].bytes[1]            = spi_transfer(0x00);
-    raw_gyro[PITCH   ].bytes[0]            = spi_transfer(0x00);
-    raw_gyro[YAW     ].bytes[1]            = spi_transfer(0x00);
-    raw_gyro[YAW     ].bytes[0]            = spi_transfer(0x00);
-    DISABLE_SPI;
+    raw_gyro[ROLL    ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
+    raw_gyro[ROLL    ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
+    raw_gyro[PITCH   ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
+    raw_gyro[PITCH   ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
+    raw_gyro[YAW     ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
+    raw_gyro[YAW     ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
+    spi_disable(&MPU6000_CS);
 
 }
 
@@ -201,7 +198,7 @@ void data_transfer_callback_mpu(void) {
 void read_mpu_dma(void){
     us = micros();
     raw_mpu[0] = MPU6000_ACCEL_XOUT_H | 0x80;
-    dma_transfer(raw_mpu, raw_mpu, 15, &data_transfer_callback_mpu);
+    dma_transfer(&MPU6000, raw_mpu, raw_mpu, 15, &data_transfer_callback_mpu);
 }
 
 
@@ -214,16 +211,16 @@ void calibrate_mpu(void) {
         accelRTError[PITCH] += ((float)raw_accel[PITCH].value / 8192.0f) - accelCTBias[PITCH];
         accelRTError[YAW  ] += ((float)raw_accel[YAW  ].value / 8192.0f) - accelCTBias[YAW  ];
 
-        gyroRTError[ROLL ]  += ((float)raw_gyro[ROLL ].value / 8.2f) - gyroCTBias[ROLL ];
-        gyroRTError[PITCH]  += ((float)raw_gyro[PITCH].value / 8.2f) - gyroCTBias[PITCH];
-        gyroRTError[YAW  ]  += ((float)raw_gyro[YAW  ].value / 8.2f) - gyroCTBias[YAW  ];
+        gyroRTError[ROLL ]  += ((float)raw_gyro[ROLL ].value / 16.5f) - gyroCTBias[ROLL ];
+        gyroRTError[PITCH]  += ((float)raw_gyro[PITCH].value / 16.5f) - gyroCTBias[PITCH];
+        gyroRTError[YAW  ]  += ((float)raw_gyro[YAW  ].value / 16.5f) - gyroCTBias[YAW  ];
     }
 
     for (uint8_t axis = 0; axis < 3; axis++) {
         accelRTError[axis]   = accelRTError[axis] / (float)SAMPLES_NUM;
         gyroRTError[axis] = gyroRTError[axis] / (float)SAMPLES_NUM;
     }
-
+    calibrated = true;
 //    gyroSum[ROLL ] = (float)raw_gyro[ROLL ].value / 32.8f - gyroRTError[ROLL ];
 //    gyroSum[PITCH] = (float)raw_gyro[PITCH].value / 32.8f - gyroRTError[PITCH];
 //    gyroSum[YAW  ] = (float)raw_gyro[YAW  ].value / 32.8f - gyroRTError[YAW  ];
@@ -252,13 +249,13 @@ void compute_angles(void){
     accelSum[PITCH] = ((float)(raw_accel[PITCH].value) / 8192.0f) - accelRTError[PITCH];// asinf((-1*(float)(raw_accel[PITCH].value) / 16384.0f) / oneG);
     accelSum[YAW  ] = ((float)(raw_accel[YAW  ].value) / 8192.0f) - accelRTError[YAW  ];
 
-    gyroSum[ROLL ] += (((((float)raw_gyro[ROLL ].value / 8.2f))) - gyroRTError[ROLL ]) * seconds_diff;//gyroSum[ROLL] + (((float)(raw_gyro[ROLL].value) / 16.4) * seconds_diff);
-    gyroSum[PITCH] += (((((float)raw_gyro[PITCH].value / 8.2f))) - gyroRTError[PITCH]) * seconds_diff; //gyroSum[PITCH] + (((float)(raw_gyro[PITCH].value) / 16.4) * seconds_diff);
-    gyroSum[YAW  ] += (((((float)raw_gyro[YAW  ].value / 8.2f))) - gyroRTError[YAW  ]) * seconds_diff;//gyroSum[YAW] + (((float)(raw_gyro[YAW].value) / 16.4) * seconds_diff);
+    gyroSum[ROLL ] += (((((float)raw_gyro[ROLL ].value / 16.5f))) - gyroRTError[ROLL ]) * seconds_diff;//gyroSum[ROLL] + (((float)(raw_gyro[ROLL].value) / 16.4) * seconds_diff);
+    gyroSum[PITCH] += (((((float)raw_gyro[PITCH].value / 16.5f))) - gyroRTError[PITCH]) * seconds_diff; //gyroSum[PITCH] + (((float)(raw_gyro[PITCH].value) / 16.4) * seconds_diff);
+    gyroSum[YAW  ] += (((((float)raw_gyro[YAW  ].value / 16.5f))) - gyroRTError[YAW  ]) * seconds_diff;//gyroSum[YAW] + (((float)(raw_gyro[YAW].value) / 16.4) * seconds_diff);
 
-    angle[ROLL ] = 0.996f * (gyroSum[ROLL ]) + 0.004f * accelSum[ROLL ];
-    angle[PITCH] = 0.996f * (gyroSum[PITCH]) + 0.004f * accelSum[PITCH];
-    angle[YAW  ] = 0.996f * (gyroSum[YAW  ]) + 0.004f * accelSum[YAW  ];
+    angle[ROLL ] = angle[ROLL ] > 360.0f ? 0.0f : 0.996f * (gyroSum[ROLL ]) + 0.004f * accelSum[ROLL ];
+    angle[PITCH] = angle[PITCH] > 360.0f ? 0.0f : 0.996f * (gyroSum[PITCH]) + 0.004f * accelSum[PITCH];
+    angle[YAW  ] = angle[YAW  ] > 360.0f ? 0.0f : 0.996f * (gyroSum[YAW  ]) + 0.004f * accelSum[YAW  ];
 
     oneG = sqrtf(powf(accelSum[ROLL ], 2.0f) + powf(accelSum[PITCH], 2.0f) + powf(accelSum[YAW  ], 2.0f));
 }
@@ -308,5 +305,6 @@ void movement_end_check(void)
 void EXTI4_IRQHandler(void) {
     EXTI_ClearITPendingBit(EXTI_Line4);
     read_mpu_dma();
+
 }
 

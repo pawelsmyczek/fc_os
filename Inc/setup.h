@@ -5,19 +5,16 @@
 #ifndef FC_SOFT_SETUP_H
 #define FC_SOFT_SETUP_H
 
-#include "stm32f4xx.h"
-#include "mpu6000.h"
-#include "pid.h"
-#include "spi.h"
-#include <stdbool.h>
-#include "usbd_cdc_core.h"
-#include "usbd_usr.h"
-#include "usbd_desc.h"
-#include "usbd_cdc_vcp.h"
-#include "kalman_filter.h"
 
-#define TIM_ARR                          (uint16_t)1999
-#define TIM_CCR                          (uint16_t)1000
+
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <string.h>
+
+#include "stm32f4xx.h"
+#include "stm32f4xx_conf.h"
 
 #define DWT_CTRL    (*(volatile uint32_t *)0xE0001000)
 #define DWT_CYCCNT  ((volatile uint32_t *)0xE0001004)
@@ -28,41 +25,79 @@
 #define MOTOR_3     2
 #define MOTOR_4     3
 
-DMA_InitTypeDef             DMA_InitStructure;
+// INERNAL TYPEDEFS
 
+
+
+__IO uint32_t sysTickCycleCounter;
+__IO uint32_t usTicks;
+
+// USER DEFINED STRUCTS
+
+
+DMA_InitTypeDef             dmaInitStructure1;
+DMA_InitTypeDef             dmaInitStructure2;
+DMA_InitTypeDef             dmaInitStructure3;
 RCC_ClocksTypeDef           RCC_Clocks;
 GPIO_InitTypeDef            GPIO_InitStructure;
 TIM_TimeBaseInitTypeDef     TIM_TimeBaseInitStructure;
 TIM_OCInitTypeDef           TIM_OCInitStructure;
-SPI_InitTypeDef             SPI_InitStruct;
+
+typedef struct{
+    GPIO_TypeDef* GPIO;
+    uint16_t PinNumber;
+}CS_Pin;
+
+typedef struct{
+    SPI_TypeDef*        SPI;
+    CS_Pin*             ChipSelect;
+    uint8_t             IRQChannel;
+    uint32_t            DMA_Channel;
+    DMA_InitTypeDef*    DMA_InitStructure;
+    DMA_Stream_TypeDef* TX_DMA_Stream;
+    DMA_Stream_TypeDef* RX_DMA_Stream;
+    uint32_t            DMA_FLAG_TX;
+    uint32_t            DMA_FLAG_RX;
+    void                (*callback)(void);
+    uint8_t*            in_buffer;
+    const uint8_t*      out_buffer;
+    bool                busy;
+}SPI_Dev;
 
 
-__IO uint32_t elapsed_ms_since_start;
-__IO uint32_t sysTickCycleCounter;
-__IO uint32_t usTicks;
 
-float KP, KD, KI;
-PIDControl pid_angle[3];
-PIDControl pid_z_velocity;
-char serial_out[70];
+typedef struct{
+    I2C_TypeDef*        I2C;
+    uint16_t            SCL_Pin;
+    uint16_t            SDA_Pin;
+    DMA_InitTypeDef*    DMA_InitStructure;
+    uint32_t            I2C_ClockSpeed;
+    IRQn_Type           I2C_EV_IRQn;
+    IRQn_Type           I2C_ER_IRQn;
+    DMA_Stream_TypeDef* DMA_Stream;
+    uint32_t            DMA_Channel;
+    IRQn_Type           DMA_IRQn;
+    uint32_t            DMA_TCIF;
+    uint8_t             return_code;
+    void                (*callback)(uint8_t);
+    volatile uint8_t    address;
+    volatile uint8_t    length;
+    volatile uint8_t    reg;
+    volatile uint8_t    data;
+    bool                subaddress_sent;
+    bool                done;
+    bool                initialised;
+    uint8_t             current_status;
+} I2C_Dev;
 
 
-void system_init(void);
+
+
 void SysTick_Handler(void);
-void system_clock_init(void);
-void init_clocks(void);
-void init_timers(void);
-void init_motors(void);
-void write_motor(uint8_t channel, uint16_t value);
-void toggle_leds_on_start(void);
-void gpio_inits(void);
-void usart_inits(void);
-
-uint32_t millis(void);
+volatile uint32_t millis(void);
 uint32_t micros(void);
 void delay_us(uint32_t us);
 void delay_ms(uint32_t ms);
-void TimingDelay_Decrement(void);
 void Fail_Handler(void);
 
 #endif //FC_SOFT_SETUP_H

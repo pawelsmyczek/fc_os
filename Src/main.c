@@ -1,57 +1,34 @@
-/**
-  ******************************************************************************
-  * @file    main.c 
-  * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    19-September-2011
-  * @brief   Main program body
-  ******************************************************************************
-  * @attention
-  *
-  * THE PRESENT FIRMWARE WHICH IS FOR GUIDANCE ONLY AIMS AT PROVIDING CUSTOMERS
-  * WITH CODING INFORMATION REGARDING THEIR PRODUCTS IN ORDER FOR THEM TO SAVE
-  * TIME. AS A RESULT, STMICROELECTRONICS SHALL NOT BE HELD LIABLE FOR ANY
-  * DIRECT, INDIRECT OR CONSEQUENTIAL DAMAGES WITH RESPECT TO ANY CLAIMS ARISING
-  * FROM THE CONTENT OF SUCH FIRMWARE AND/OR THE USE MADE BY CUSTOMERS OF THE
-  * CODING INFORMATION CONTAINED HEREIN IN CONNECTION WITH THEIR PRODUCTS.
-  *
-  * <h2><center>&copy; COPYRIGHT 2011 STMicroelectronics</center></h2>
-  ******************************************************************************
-  */ 
-
 /*TODO:
- * - Basic scheduler:
- *      * typedef struct{
- *          should contain at least:
- *              - task_function
- *              - time_beginning
- *              - time_ellapsed
- *              - (maybe) priority
- *      } task_t;
- *      * typedef struct{
- *              - queue related members
- *      }task_queue;
- *      * tasks_queue inserter,
- *      *task_queue popper,
- *      * scheduling function (is there a good way to do that?),
- * - think of ways of better mpu initialisation in terms of scale differences,
+ * - Basic scheduler: USAGE TO BE CONSIDERED, WHILE INTERRUPTS MATCH OUR NEEDS
+ *      * scheduling function IF THERE WILL BE NEED FOR IT, SysTick will be enough for us,
+ * - KIND OF FIXED WITH DMA think of ways of better mpu initialisation in terms of scale differences,
  * - Steering algorithms:
- *      * gyro based
- *      * accell based
- *      * to be consulted
+ *      * PID ****  DONE  *****
+ *      * LQR TO BE IMPLEMENTED AS SOON AS QUADROTOR FLIES WITH PID AND STABILIZES ITSELF
  * - Input for PWM generation:
- *      * maybe structure based ()
- * - Tests
+ *      * IMU BASED, SINCE WE DO EXAMINATIONS FOR ONLY ALITTUDE STABILIZATION
+ * - Tests:
+ *      * GOOD QUESTION, since we have external flash memory, it can be used to save some test data (as blackbox)
  * */
 
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-//Library config for this project!!!!!!!!!!!
-#include "stm32f4xx_conf.h"
-
 
 /* Private typedef -----------------------------------------------------------*/
+
+typedef struct
+{
+    uint8_t magic_BE;
+    uint8_t big_array[2048];
+    uint8_t magic_AC;
+    uint8_t big_array2[2048];
+    uint8_t magic_D3;
+    uint8_t crc;
+} config_t;
+
+#define USB_BUFFER_LEN  255
+
 /* Private define ------------------------------------------------------------*/
 
 /* Private macro -------------------------------------------------------------*/
@@ -81,7 +58,9 @@ int main(void)
     uint16_t pwm_out = 1000;
     uint16_t pwm_out_high = 1080;
     uint16_t pwm_out_low = 1000;
-
+    char serial_out[] = "";
+    int serial_out_len;
+    char serial_in_buffer = NULL;
     uint16_t pwm_out_max = 1500;
     uint16_t pwm_out_min = 1018;
     uint16_t pwm_lf = 0, pwm_rf = 0, pwm_lb = 0, pwm_rb = 0;
@@ -89,30 +68,91 @@ int main(void)
     uint16_t test_procedure_time = 200;
     uint16_t height_increase_time = 100;
     uint16_t ellapsed_time = 0;
+
+
+    bool success = false;
+    static config_t sample_config_file;
+    static uint8_t sample_config_buffer[sizeof(config_t)];
+
+    sample_config_file.magic_BE = 0xBE;
+    sample_config_file.magic_AC = 0xAC;
+    sample_config_file.magic_D3 = 0xD3;
+    for (int i = 0; i < 2048; i++)
+    {
+        sample_config_file.big_array[i] = 2;
+        sample_config_file.big_array2[i] = 3;
+    }
+    //crc calculation
+    uint8_t crc = 0;
+
+    for (uint8_t* p = (uint8_t*)&sample_config_file; p < (uint8_t*)&sample_config_file + sizeof(sample_config_file); p++)
+    {
+        crc ^= *p;
+    }
+
+    sample_config_file.crc = crc;
+
+
+    delay_ms(10000);
     /*
      *
-     * testing throttle values
+     * tested throttle values
      * 1010 - minimum value
      * 2000 - maximum value
      * */
 
-    delay_ms(1500);
-//    while(pwm_out++ < 1200 ) {
-//        for(uint8_t motor = 0; motor < 4; motor++)
-//            write_motor(motor, pwm_out);
-//        delay_ms(1);
-//    }
-//    delay_ms(100);
-//    while(pwm_out-- > 1000 ) {
-//    for(uint8_t motor = 0; motor < 4; motor++)
-//        write_motor(motor, pwm_out);
-//        delay_ms(1);
-//    }
+    CDC_Send_DATA("FLIGHT CONTROL PROGRAM BEGIN - type 'c' to continue\n\r", 54);
+    while(serial_in_buffer != 'c') CDC_Receive_DATA(&serial_in_buffer, 1);
 
-    us = millis();
+    delay_ms(1000);
+    CDC_Send_DATA("WHAT WOULD YOU LIKE TO DO? TYPE ONE OF THESE:\n\r", 48);
+    CDC_Send_DATA("- BEGIN TEST FLIGHT?          'b'\n\r", 36);
+    CDC_Send_DATA("- READ FROM FLASH MEMORY?     'r'\n\r", 36);
+    CDC_Send_DATA("- TEST GYRO?                  'g'\n\r", 36);
+    CDC_Send_DATA("- TEST ACCEL?                 'a'\n\r", 36);
+    while(serial_in_buffer != 'b' && serial_in_buffer != 'r' && serial_in_buffer != 'g' && serial_in_buffer != 'a')
+        CDC_Receive_DATA(&serial_in_buffer, 1);
+
+    delay_ms(1000);
+    if(serial_in_buffer == 'r'){
+        INFO_LED_ON;
+        //sample configuration data
+        CDC_Send_DATA("READING FROM EXTERNAL MEMORY PROCEDURE\n\r", 41);
+
+        delay_ms(1000);
+        CDC_Send_DATA("WRITING TO EXTERNAL MEMORY\n\r", 29);
+        NVIC_DisableIRQ(EXTI4_IRQn);
+        write_config((uint8_t*)&sample_config_file, sizeof(config_t));
+        read_config(sample_config_buffer, sizeof(config_t), 0x00);
+        NVIC_EnableIRQ(EXTI4_IRQn);
+        //validation check
+        config_t* config_ptr = (config_t*)sample_config_buffer;
+
+        crc = 0;
+        for (uint8_t* p = (uint8_t*)config_ptr; p < (uint8_t*)config_ptr + sizeof(sample_config_file); p++)
+        {
+            crc ^= *p;
+        }
+
+        if (config_ptr->magic_AC == sample_config_file.magic_AC && config_ptr->magic_BE == sample_config_file.magic_BE
+        && config_ptr->magic_D3 == sample_config_file.magic_D3 && crc == 0)
+        {
+            INFO_LED_ON;
+            success = true;
+        }
+        else
+        {
+            INFO_LED_OFF;
+            success = false;
+        }
+
+
+
+    }
+    us = micros();
     while(1)
     {
-        GPIO_SetBits(GPIOC, GPIO_Pin_14);
+        INFO_LED_ON;
         compute_angles();
         positions_estimate();
         /*
@@ -135,7 +175,7 @@ int main(void)
                     write_motor(motor, pwm_out);
                 // sprintf(serial_out, "PWM_RF - %u, PWM_RB - %u, PWM_LB - %u, PWM_LF - %u\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf);
                 sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", angle[ROLL], angle[PITCH], angle[YAW]);
-                VCP_send_str(serial_out);
+                CDC_Send_DATA(serial_out, USB_BUFFER_LEN);
                 delay_ms(1);
             }
 
@@ -166,7 +206,7 @@ int main(void)
                 // sprintf(serial_out, "PWM_RF - %u, PWM_RB - %u, PWM_LB - %u, PWM_LF - %u, Z_VELOCITY - %.1f\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf, velocity[YAW]);
                 // sprintf(serial_out, "%u, %u, %u, %u, %.1f\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf, (&pid_z_velocity)->output);
                 sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", angle[ROLL], angle[PITCH], angle[YAW]);
-                VCP_send_str(serial_out);
+                CDC_Send_DATA(serial_out, USB_BUFFER_LEN);
 
                 delay_ms(100);
 
@@ -185,7 +225,7 @@ int main(void)
                     write_motor(motor, pwm_out);
                 // sprintf(serial_out, "PWM_RF - %u, PWM_RB - %u, PWM_LB - %u, PWM_LF - %u\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf);
                 sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", angle[ROLL], angle[PITCH], angle[YAW]);
-                VCP_send_str(serial_out);
+                CDC_Send_DATA(serial_out, USB_BUFFER_LEN);
                 delay_ms(100);
             }
 
@@ -203,11 +243,28 @@ int main(void)
          * */
 
 //        sprintf(serial_out, "%.3f, %.3f, %.3f\n\r", velocity[ROLL], velocity[PITCH], velocity[YAW]);
-//        VCP_send_str(serial_out);
-        sprintf(serial_out, "ACCEL[YAW] - %.1f\n\r", angle[YAW]);
-        VCP_send_str(serial_out);
-        GPIO_ResetBits(GPIOC, GPIO_Pin_14);
-        delay_ms(10);
+//        CDC_Send_DATA(serial_out);
+//        sprintf(serial_out, "ACCEL[YAW] - %u\n\r", sizeof(float));
+        if(serial_in_buffer == 'a'){
+            serial_out_len = sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", accelSum[ROLL], accelSum[PITCH], accelSum[YAW]);
+            CDC_Send_DATA(serial_out, serial_out_len);
+            delay_ms(10);
+        }
+        if(serial_in_buffer == 'g'){
+            serial_out_len = sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", gyroSum[ROLL], gyroSum[PITCH], angle[YAW]);
+            CDC_Send_DATA(serial_out, serial_out_len);
+            delay_ms(10);
+        }
+        if(serial_in_buffer == 'r'){
+            if(success){
+                serial_out_len = sprintf(serial_out, "succesfully written and read %d.%dKB data from external memory\n\r", sizeof(sample_config_file) / 1000, sizeof(sample_config_file) % 1000);
+                CDC_Send_DATA("failed to read from external memory\n\r", serial_out_len);
+            }
+            else
+                CDC_Send_DATA("failed to read from external memory\n\r", 38);
+            delay_ms(1000);
+        }
+        INFO_LED_OFF;
 	}
 
 
@@ -237,10 +294,3 @@ void assert_failed(uint8_t* file, uint32_t line)
   }
 }
 #endif
-
-/**
-  * @}
-  */
-
-
-/******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/

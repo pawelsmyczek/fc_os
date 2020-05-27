@@ -6,7 +6,7 @@
 #define FC_SOFT_MPU6000_H
 
 
-// #include "stm32f4xx.h"
+#include "spi.h"
 #include "setup.h"
 #include <stdbool.h>
 
@@ -74,8 +74,6 @@
 #define PITCH                       1
 #define YAW                         2
 
-#define ENABLE_SPI                      GPIO_ResetBits(GPIOA, GPIO_Pin_4)
-#define DISABLE_SPI                     GPIO_SetBits(GPIOA, GPIO_Pin_4)
 
 
 typedef union {
@@ -102,12 +100,15 @@ uint8_int16_t raw_accel[3];
 uint8_int16_t raw_gyro[3];
 uint8_int16_t rawMPU6000Temperature;
 uint8_int16_t response;
+bool calibrated;
 
 __IO uint32_t us;
+
 
 bool init_mpu(void);
 bool detect_mpu(void);
 void read_mpu(void);
+void read_mpu_dma(void);
 void calibrate_mpu(void);
 void compute_mpu_tc_bias(void);
 void compute_angles(void);

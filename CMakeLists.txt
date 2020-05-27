@@ -45,7 +45,7 @@ include_directories(Inc Drivers/STM32F4xx_StdPeriph_Driver/inc
         Drivers/CMSIS/Include
         Drivers/STM32_USB_Device_Library/Class/cdc/inc
         Drivers/STM32_USB_Device_Library/Core/inc
-        Drivers/STM32_USB_HOST_Library/Core/inc Drivers/STM32_USB_OTG_Driver/inc)
+        Drivers/STM32_USB_HOST_Library/Core/inc Drivers/STM32_USB_OTG_Driver/inc Drivers/vcp/inc)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 
