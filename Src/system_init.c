@@ -43,7 +43,7 @@ __IO uint32_t *output_channels[] = {&(TIM8->CCR1), // motor 1
 
 float KP = 0.05f, KI =  0.005f, KD = 0.15f;
 float KP_vel = 2.0f, KI_vel =  0.5f, KD_vel = 0.7f;
-
+uint8_t bmp180_version;
 
 
 void system_init(void){
@@ -55,18 +55,18 @@ void system_init(void){
     /*SPI devices init*/
 
     chip_select_init(&MPU6000_CS, GPIOA, GPIO_Pin_4);
-    spi_init(&MPU6000, SPI1, &dmaInitStructure1, &MPU6000_CS, DMA2_Stream3_IRQn,
+    spi_init(&MPU6000, SPI1, SPI_CPOL_High, &dmaInitStructure1, &MPU6000_CS, DMA2_Stream3_IRQn,
              DMA_Channel_3, DMA2_Stream3,
              DMA2_Stream2, DMA_FLAG_TCIF3, DMA_FLAG_TCIF2, 0x01);
 
     chip_select_init(&M25P16_CS, GPIOB, GPIO_Pin_12);
-    spi_init(&M25P16, SPI2, &dmaInitStructure2, &M25P16_CS, DMA1_Stream4_IRQn,
+    spi_init(&M25P16, SPI2, SPI_CPOL_Low, &dmaInitStructure2, &M25P16_CS, DMA1_Stream4_IRQn,
             DMA_Channel_0, DMA1_Stream4,
-            DMA1_Stream3, DMA_FLAG_TCIF4, DMA_FLAG_TCIF3, 0x01);
+            DMA1_Stream3, DMA_FLAG_TCIF4, DMA_FLAG_TCIF3, 0x02);
 
     /*I2C devices init*/
 
-    i2c_init(&BMP180, I2C1, GPIO_Pin_8, GPIO_Pin_9, &dmaInitStructure3, 100000, I2C1_EV_IRQn, I2C1_ER_IRQn,
+    i2c_init(&BMP180, I2C1, GPIO_Pin_8, GPIO_Pin_9, &dmaInitStructure3, 50000, I2C1_EV_IRQn, I2C1_ER_IRQn,
             DMA1_Stream0, DMA_Channel_1, DMA1_Stream0_IRQn,
              DMA_FLAG_TCIF0, true);
     delay_ms(100);
@@ -78,7 +78,8 @@ void system_init(void){
     init_motors();
     init_mpu();
     init_m25p16();
-
+    bmp180_version = BMP180_GetVersion();
+    BMP180_ReadCalibration();
 
     for(uint8_t i = 0; i < 3; i++)
         pid_init(&pid_angle[i], KP, KI, KD, 0.01f, -150.0f, 150.0f,
@@ -113,6 +114,7 @@ void init_clocks(void){
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
@@ -213,7 +215,7 @@ void init_gpio(void){
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_DOWN;
 
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
@@ -222,7 +224,7 @@ void init_gpio(void){
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_DOWN;
 
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
@@ -230,7 +232,7 @@ void init_gpio(void){
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_DOWN;
 
     GPIO_Init(GPIOC, &GPIO_InitStructure);
 
@@ -253,13 +255,14 @@ void init_gpio(void){
 
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
+    //SCL PB8
+
+    GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_I2C1);
     //SDA PB9
 
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_I2C1);
 
-    //SCL PB8
 
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource8, GPIO_AF_I2C1);
 
     // PWMs
 
@@ -409,9 +412,9 @@ void init_motors(void){
 void toggle_leds_on_start(void) {
     for(uint8_t i = 0; i < 10; i++ ){
         INFO_LED_ON;
-        delay_ms(4);
+        delay_ms(20);
         INFO_LED_OFF;
-        delay_ms(4);
+        delay_ms(20);
     }
 
 }

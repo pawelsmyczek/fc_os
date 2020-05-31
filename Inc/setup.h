@@ -80,10 +80,10 @@ typedef struct{
     uint32_t            DMA_TCIF;
     uint8_t             return_code;
     void                (*callback)(uint8_t);
-    volatile uint8_t    address;
-    volatile uint8_t    length;
-    volatile uint8_t    reg;
-    volatile uint8_t    data;
+    uint8_t             address;
+    uint8_t             length;
+    uint8_t             reg;
+    uint8_t*            data;
     bool                subaddress_sent;
     bool                done;
     bool                initialised;

@@ -14,7 +14,7 @@ void chip_select_init(CS_Pin* pin, GPIO_TypeDef* gpio, uint16_t pinNumber){
     pin->PinNumber  = pinNumber;
 }
 
-int spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, DMA_InitTypeDef* dmaInitStructure, CS_Pin* chipSelect,
+int spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, uint16_t clockPolarity, DMA_InitTypeDef* dmaInitStructure, CS_Pin* chipSelect,
         uint8_t irqChannel, uint32_t dmaChannel, DMA_Stream_TypeDef *txDmaStream,
         DMA_Stream_TypeDef *rxDmaStream, uint32_t dmaTxFlag, uint32_t dmaRxFlag, uint8_t priority){
 
@@ -42,7 +42,7 @@ int spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, DMA_InitTypeDef* dmaInitStructure, 
     SPI_InitStruct.SPI_Direction         = SPI_Direction_2Lines_FullDuplex;
     SPI_InitStruct.SPI_Mode              = SPI_Mode_Master;
     SPI_InitStruct.SPI_DataSize          = SPI_DataSize_8b;
-    SPI_InitStruct.SPI_CPOL              = SPI_CPOL_High;
+    SPI_InitStruct.SPI_CPOL              = clockPolarity;
     SPI_InitStruct.SPI_CPHA              = SPI_CPHA_2Edge;
     SPI_InitStruct.SPI_NSS               = SPI_NSS_Soft;
     SPI_InitStruct.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_64;  // 42/64 = 0.65625 MHz SPI Clock
@@ -182,7 +182,7 @@ void m25p16_transfer_complete_callback(void){
         M25P16.callback();
 }
 
-void dma_mem_write(SPI_Dev* dev, const uint8_t* out_data, uint32_t number_of_bytes){
+void dma_mem_write(SPI_Dev* dev, uint8_t* out_data, uint32_t number_of_bytes){
     dev->busy = true;
     dma_buffer_size = number_of_bytes;
     dev->in_buffer  = dummyread;

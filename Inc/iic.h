@@ -67,10 +67,18 @@ int8_t read_data_async(I2C_Dev* dev, uint8_t _addr,
                        bool is_blocking);
 int8_t read_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data);
 void bmp180_transfer_complete_cb();
-int8_t write_data_async(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t data, void (*callback)(uint8_t), bool is_blocking);
-int8_t write_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t data, void (*callback)(uint8_t), bool is_blocking);
+int8_t write_data_async(I2C_Dev* dev, uint8_t addr,
+                                    uint8_t reg,
+                                    uint8_t* data,
+                                    void (*callback)(uint8_t),
+                                    bool is_blocking);
+int8_t write_data(I2C_Dev* dev, uint8_t addr,
+                                uint8_t reg,
+                                uint8_t* data);
 
 void handle_error(I2C_Dev* dev);
 void handle_event(I2C_Dev* dev);
 void DMA1_Stream0_IRQHandler(void);
+void I2C1_ER_IRQHandler(void);
+void I2C1_EV_IRQHandler(void);
 #endif //FC_SOFT_IIC_H

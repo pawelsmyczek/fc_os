@@ -12,10 +12,7 @@
  * */
 
 
-/* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
-/* Private typedef -----------------------------------------------------------*/
 
 typedef struct
 {
@@ -104,13 +101,14 @@ int main(void)
     CDC_Send_DATA("FLIGHT CONTROL PROGRAM BEGIN - type 'c' to continue\n\r", 54);
     while(serial_in_buffer != 'c') CDC_Receive_DATA(&serial_in_buffer, 1);
 
-    delay_ms(1000);
+    //delay_ms(1000);
     CDC_Send_DATA("WHAT WOULD YOU LIKE TO DO? TYPE ONE OF THESE:\n\r", 48);
-    CDC_Send_DATA("- BEGIN TEST FLIGHT?          'b'\n\r", 36);
+    CDC_Send_DATA("- BEGIN TEST FLIGHT?          't'\n\r", 36);
     CDC_Send_DATA("- READ FROM FLASH MEMORY?     'r'\n\r", 36);
     CDC_Send_DATA("- TEST GYRO?                  'g'\n\r", 36);
     CDC_Send_DATA("- TEST ACCEL?                 'a'\n\r", 36);
-    while(serial_in_buffer != 'b' && serial_in_buffer != 'r' && serial_in_buffer != 'g' && serial_in_buffer != 'a')
+    CDC_Send_DATA("- TEST BARO?                  'b'\n\r", 36);
+    while(serial_in_buffer != 't' && serial_in_buffer != 'r' && serial_in_buffer != 'g' && serial_in_buffer != 'a' && serial_in_buffer != 'b')
         CDC_Receive_DATA(&serial_in_buffer, 1);
 
     delay_ms(1000);
@@ -155,6 +153,7 @@ int main(void)
         INFO_LED_ON;
         compute_angles();
         positions_estimate();
+        BMP180_GetReadings(&temperature_read, &pressure_read, BMP180_STANDARD);
         /*
          *
          * TEST PROCEDURE START
@@ -255,13 +254,19 @@ int main(void)
             CDC_Send_DATA(serial_out, serial_out_len);
             delay_ms(10);
         }
+        if(serial_in_buffer == 'b'){
+            serial_out_len = sprintf(serial_out, "temp: %d, press: %ld\n\r", temperature_read, pressure_read);
+            CDC_Send_DATA(serial_out, serial_out_len);
+            delay_ms(100);
+        }
         if(serial_in_buffer == 'r'){
             if(success){
                 serial_out_len = sprintf(serial_out, "succesfully written and read %d.%dKB data from external memory\n\r", sizeof(sample_config_file) / 1000, sizeof(sample_config_file) % 1000);
-                CDC_Send_DATA("failed to read from external memory\n\r", serial_out_len);
+                CDC_Send_DATA(serial_out, serial_out_len);
             }
-            else
+            else{
                 CDC_Send_DATA("failed to read from external memory\n\r", 38);
+            }
             delay_ms(1000);
         }
         INFO_LED_OFF;

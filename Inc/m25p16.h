@@ -25,6 +25,8 @@
 #define STATUS_BLOCK_PROTECT_BITS    0x1C
 #define STATUS_SRWD_BIT              0x80
 
+#define SECTOR_ERASE_TIMEOUT_MILLIS  5000
+
 static uint32_t current_page;
 static uint32_t current_position;
 static uint32_t config_size;

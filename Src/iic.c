@@ -4,6 +4,8 @@
 
 #include "iic.h"
 
+uint16_t hardware_errors = 0;
+
 #define while_check(cond, result)                \
   {                                              \
     int32_t timeout_var = 200;                   \
@@ -51,15 +53,15 @@ void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
     I2C_InitStructure.I2C_ClockSpeed = dev->I2C_ClockSpeed;
     I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
     I2C_InitStructure.I2C_DutyCycle = I2C_DutyCycle_2;
-    I2C_InitStructure.I2C_OwnAddress1 = 0; // The first device address
+    I2C_InitStructure.I2C_OwnAddress1 = 0; // The first device address as in master mode it is
     I2C_InitStructure.I2C_Ack = I2C_Ack_Disable;
     I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
     I2C_Init(dev->I2C, &I2C_InitStructure);
 
     // Interrupts
     NVIC_InitTypeDef NVIC_InitStructure;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x05;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x04;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x01;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_InitStructure.NVIC_IRQChannel = dev->I2C_EV_IRQn;
     NVIC_Init(&NVIC_InitStructure);
@@ -84,7 +86,7 @@ void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
     dev->DMA_InitStructure->DMA_Mode = DMA_Mode_Normal;
     dev->DMA_InitStructure->DMA_Channel = dev->DMA_Channel;
 
-    dev->DMA_InitStructure->DMA_PeripheralBaseAddr = (uint32_t)(&(dev->I2C->DR));
+    dev->DMA_InitStructure->DMA_PeripheralBaseAddr = (uint32_t)(&(i2c->DR));
     dev->DMA_InitStructure->DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
     dev->DMA_InitStructure->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
     dev->DMA_InitStructure->DMA_Priority = DMA_Priority_High;
@@ -92,7 +94,7 @@ void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
 
     last_event = micros();
     I2C_Cmd(dev->I2C, ENABLE);
-    unstick(dev);
+    // unstick(dev);
 
     dev->initialised = is_initialised;
 
@@ -112,14 +114,14 @@ void unstick(I2C_Dev* dev){
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     GPIO_SetBits(GPIOB, dev->SCL_Pin);
@@ -154,19 +156,19 @@ void unstick(I2C_Dev* dev){
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    // GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(GPIOB, &GPIO_InitStruct);
     I2C_Cmd(dev->I2C, ENABLE);
 
     dev->current_status = IDLE;
-    write_data(dev, 0, 0, 0, NULL, false);
+    write_data(dev, 0, 0, 0);
 
     last_event = micros();
 }
@@ -177,7 +179,7 @@ bool check_busy(I2C_Dev* dev){
     else {
         // If we haven't seen anything in a long while, then restart the device
         if (micros() > last_event + 2000) {
-//            error_count_++;
+            hardware_errors++;
             // Send a stop condition
             I2C_GenerateSTOP(dev->I2C, ENABLE);
             dev->return_code = RESULT_SUCCESS;
@@ -193,14 +195,14 @@ bool check_busy(I2C_Dev* dev){
                 GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
                 GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
                 GPIO_Init(GPIOB, &GPIO_InitStruct);
 
                 GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
                 GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
                 GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
                 GPIO_Init(GPIOB, &GPIO_InitStruct);
 
                 // send a start condition
@@ -220,14 +222,14 @@ bool check_busy(I2C_Dev* dev){
                 GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
                 GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
                 GPIO_Init(GPIOB, &GPIO_InitStruct);
 
                 GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
                 GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
                 GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
                 GPIO_Init(GPIOB, &GPIO_InitStruct);
                 I2C_Cmd(dev->I2C, ENABLE);
 
@@ -242,9 +244,8 @@ bool check_busy(I2C_Dev* dev){
 }
 
 void handle_hardware_failure(I2C_Dev* dev){
-    //error_count_++;
+    hardware_errors++;
     dev->return_code = RESULT_ERROR;
-    //  unstick(); //unstick and reinitialize the hardware
 }
 
 bool is_initialised(I2C_Dev* dev) { return dev->initialised; }
@@ -267,11 +268,12 @@ int8_t read_data_async(I2C_Dev* dev, uint8_t _addr,
     dev->subaddress_sent = (dev->reg == 0xFF);
     dev->length = number_of_bytes;
     dev->done = false;
+    dev->data = data;
     dev->return_code = RESULT_SUCCESS;
 
     DMA_DeInit(dev->DMA_Stream);
     dev->DMA_InitStructure->DMA_BufferSize = (uint16_t)(dev->length);
-    dev->DMA_InitStructure->DMA_Memory0BaseAddr = (uint32_t)(data);
+    dev->DMA_InitStructure->DMA_Memory0BaseAddr = (uint32_t)(dev->data);
     DMA_Init(dev->DMA_Stream, dev->DMA_InitStructure);
 
     I2C_Cmd(dev->I2C, ENABLE);
@@ -326,8 +328,7 @@ int8_t read_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data){
         while_check(!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_MODE_SELECT), dev->return_code);
         I2C_Send7bitAddress(dev->I2C, addr << 1, I2C_Direction_Transmitter);
         uint32_t timeout = 500;
-        while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED) && --timeout != 0)
-            ;
+        while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED) && --timeout != 0);
         if (timeout != 0)
         {
             I2C_GenerateSTOP(dev->I2C, ENABLE);
@@ -351,8 +352,7 @@ int8_t read_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data){
     I2C_Cmd(dev->I2C, ENABLE);
     I2C_Send7bitAddress(dev->I2C, addr << 1, I2C_Direction_Receiver);
     uint32_t timeout = 500;
-    while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_BYTE_RECEIVED) && --timeout != 0)
-        ;
+    while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_BYTE_RECEIVED) && --timeout != 0);
     if (timeout != 0)
     {
         *data = I2C_ReceiveData(dev->I2C);
@@ -370,7 +370,7 @@ int8_t read_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data){
 }
 
 
-int8_t write_data_async(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t data, void (*callback)(uint8_t), bool is_blocking)
+int8_t write_data_async(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data, void (*callback)(uint8_t), bool is_blocking)
 {
     if (check_busy(dev))
         return RESULT_BUSY;
@@ -406,7 +406,7 @@ int8_t write_data_async(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t data, v
 }
 
 
-int8_t write_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t data, void (*callback)(uint8_t), bool is_blocking){
+int8_t write_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data){
     if (check_busy(dev))
         return RESULT_BUSY;
 

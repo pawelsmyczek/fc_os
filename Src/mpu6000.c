@@ -305,6 +305,5 @@ void movement_end_check(void)
 void EXTI4_IRQHandler(void) {
     EXTI_ClearITPendingBit(EXTI_Line4);
     read_mpu_dma();
-
 }
 

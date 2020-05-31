@@ -5,7 +5,7 @@
 #include "m25p16.h"
 
 void init_m25p16(void){
-    set_spi_divisor(&M25P16, 2);
+    set_spi_divisor(&M25P16, 16);
 }
 
 static uint8_t get_status(void){
@@ -20,13 +20,20 @@ static uint8_t get_status(void){
 
 void read_config(uint8_t *data, uint32_t len, uint8_t addr_start){
     // READ DATA COMMAND
-    uint8_t addr[4] = {READ_DATA, addr_start, 0, 0};
+    // blocking sequence, not working with DMA
+    uint8_t addr[4] = {READ_DATA, (uint8_t)(addr_start >> 8), (uint8_t)(addr_start & 0xFF), 0};
     spi_enable(&M25P16_CS);
-    dma_transfer(&M25P16, addr, NULL, 4, NULL);
-    while(is_busy(&M25P16));
 
-    dma_transfer(&M25P16, NULL, data, len, NULL);
-    while(is_busy(&M25P16));
+    spi_transfer(&M25P16, addr[0]);
+    spi_transfer(&M25P16, addr[1]);
+    spi_transfer(&M25P16, addr[2]);
+    spi_transfer(&M25P16, addr[3]);
+
+    while(len--){
+        *data = spi_transfer(&M25P16, NULL);
+        data++;
+        delay_ms(6);
+    }
 
     spi_disable(&M25P16_CS);
 }
@@ -48,11 +55,17 @@ bool write_config(const uint8_t *data, const uint32_t len){
 
     // Erase Sector (There is really no way around this, we have to erase the entire sector
     uint8_t sector_addr[4] = {SECTOR_ERASE, 0, 0, 0};
-    dma_transfer(&M25P16, sector_addr, NULL, 4, NULL);
-    while (is_busy(&M25P16));
+    spi_enable(&M25P16_CS);
+    spi_transfer(&M25P16, sector_addr[0]);
+    spi_transfer(&M25P16, sector_addr[1]);
+    spi_transfer(&M25P16, sector_addr[2]);
+    spi_transfer(&M25P16, sector_addr[3]);
+    spi_disable(&M25P16_CS);
+
     // Wait for Sector Erase to complete
     bool WIP = true;
     do {
+        delay_ms(5000);
         status = get_status();
         if ((status & STATUS_WIP_BIT) == 0x00)
             WIP = false;
@@ -76,18 +89,24 @@ bool write_config(const uint8_t *data, const uint32_t len){
         // Send the PAGE_PROGRAM command with the right address
         spi_enable(&M25P16_CS);
         uint8_t addr[4] = {PAGE_PROGRAM, (uint8_t)(i >> 8), (uint8_t)(i & 0xFF), 0};
-        dma_transfer(&M25P16, addr, NULL, 4, NULL);
-        while (is_busy(&M25P16)); // Wait for the address to clear
+        spi_transfer(&M25P16, addr[0]);
+        spi_transfer(&M25P16, addr[1]);
+        spi_transfer(&M25P16, addr[2]);
+        spi_transfer(&M25P16, addr[3]);
+
         // Transfer the data
-        dma_mem_write(&M25P16, &data[256 * i], page_len);
-        while (is_busy(&M25P16));// Wait for the page to write
+        while(page_len--){
+            spi_transfer(&M25P16, *data);
+            data++;
+        }
 
         spi_disable(&M25P16_CS);
 
-        // Wait for the page program to happen
+        // poll the status register to establish, whether the writing operation ended
         WIP = true;
         do
         {
+            delay_ms(6);
             status = get_status();
             if ((status & STATUS_WIP_BIT) == 0x00)
                 WIP = false;
@@ -97,7 +116,7 @@ bool write_config(const uint8_t *data, const uint32_t len){
     // Disable the write
     spi_enable(&M25P16_CS);
     spi_transfer(&M25P16, WRITE_DISABLE);
-    spi_enable(&M25P16_CS);
+    spi_disable(&M25P16_CS);
     return true;
 }
 
