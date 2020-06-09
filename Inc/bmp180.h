@@ -11,7 +11,8 @@
 #define BMP180_I2C_PORT                 I2C2 // I2C port where the BMP180 connected
 
 // BMP180 I2C related
-#define BMP180_ADDR                     0xEE // BMP180 I2C address
+#define BMP180_ADDR_WRITE                     0xEE // BMP180 I2C address
+#define BMP180_ADDR_READ                     0xEF // BMP180 I2C address
 
 // BMP180 registers
 #define BMP180_PROM_START_ADDR          0xAA // E2PROM calibration data start register

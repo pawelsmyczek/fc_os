@@ -255,7 +255,7 @@ int main(void)
             delay_ms(10);
         }
         if(serial_in_buffer == 'b'){
-            serial_out_len = sprintf(serial_out, "temp: %d, press: %ld\n\r", temperature_read, pressure_read);
+            serial_out_len = sprintf(serial_out, "t: %.1f, p: %.1f\n\r", (float)(temperature_read)/100, (float)(pressure_read)/100);
             CDC_Send_DATA(serial_out, serial_out_len);
             delay_ms(100);
         }

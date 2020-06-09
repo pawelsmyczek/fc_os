@@ -66,26 +66,32 @@ void system_init(void){
 
     /*I2C devices init*/
 
-    i2c_init(&BMP180, I2C1, GPIO_Pin_8, GPIO_Pin_9, &dmaInitStructure3, 50000, I2C1_EV_IRQn, I2C1_ER_IRQn,
+    i2c_init(&BMP180, I2C1, GPIO_Pin_8, GPIO_Pin_9, &dmaInitStructure3, 100000, I2C1_EV_IRQn, I2C1_ER_IRQn,
             DMA1_Stream0, DMA_Channel_1, DMA1_Stream0_IRQn,
              DMA_FLAG_TCIF0, true);
     delay_ms(100);
     USBD_Init(&USB_OTG_dev,USB_OTG_FS_CORE_ID, &USR_desc,
               &USBD_CDC_cb, &USR_cb);
     delay_ms(100);
-    toggle_leds_on_start();
 
     init_motors();
     init_mpu();
     init_m25p16();
-    bmp180_version = BMP180_GetVersion();
+//    delay_ms(200);
+//    BMP180_Reset();
+    delay_ms(200);
+    bmp180_version = BMP180_Check();
     BMP180_ReadCalibration();
 
-    for(uint8_t i = 0; i < 3; i++)
+
+    for(uint8_t i = 0; i < 3; i++) {
         pid_init(&pid_angle[i], KP, KI, KD, 0.01f, -150.0f, 150.0f,
                  AUTOMATIC, REVERSE);
+    }
     pid_init(&pid_z_velocity, KP_vel, KI_vel, KD_vel, 0.01f, -150.0f, 150.0f,
              AUTOMATIC, DIRECT);
+
+    toggle_leds_on_start();
 }
 
 void init_system_clock(void){
@@ -106,9 +112,15 @@ void init_system_clock(void){
 
 void init_clocks(void){
     /* SysTick end of count event each 10ms */
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA1, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_DMA2, ENABLE);
@@ -116,10 +128,6 @@ void init_clocks(void){
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
 
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
-    RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
 
 }
@@ -241,7 +249,7 @@ void init_gpio(void){
 
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_9;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
 
@@ -249,7 +257,7 @@ void init_gpio(void){
 
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
 

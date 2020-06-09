@@ -8,7 +8,7 @@ uint16_t hardware_errors = 0;
 
 #define while_check(cond, result)                \
   {                                              \
-    int32_t timeout_var = 200;                   \
+    int32_t timeout_var = 400;                   \
     while ((cond) && timeout_var) timeout_var--; \
     if (!timeout_var)                            \
     {                                            \
@@ -45,6 +45,9 @@ void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
     dev->DMA_IRQn           = dmaIRQn;
     dev->DMA_TCIF           = dmaTCIF;
     dev->initialised        = is_initialised;
+
+    I2C_SoftwareResetCmd(dev->I2C, ENABLE);
+    I2C_SoftwareResetCmd(dev->I2C, DISABLE);
 
     I2C_DeInit(dev->I2C);
 
@@ -94,7 +97,7 @@ void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
 
     last_event = micros();
     I2C_Cmd(dev->I2C, ENABLE);
-    // unstick(dev);
+    unstick(dev);
 
     dev->initialised = is_initialised;
 
@@ -111,14 +114,14 @@ void unstick(I2C_Dev* dev){
     /*set output modes for pins*/
 
     GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
     GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
@@ -153,14 +156,14 @@ void unstick(I2C_Dev* dev){
 
     // turn things back on
     GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    // GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_Init(GPIOB, &GPIO_InitStruct);
 
     GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
@@ -168,7 +171,7 @@ void unstick(I2C_Dev* dev){
     I2C_Cmd(dev->I2C, ENABLE);
 
     dev->current_status = IDLE;
-    write_data(dev, 0, 0, 0);
+    // write_data(dev, 0, 0, 0);
 
     last_event = micros();
 }
@@ -192,14 +195,14 @@ bool check_busy(I2C_Dev* dev){
 
                 I2C_Cmd(dev->I2C, DISABLE);
                 GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
-                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
                 GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
                 GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
                 GPIO_Init(GPIOB, &GPIO_InitStruct);
 
                 GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
-                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
                 GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
                 GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
@@ -219,14 +222,14 @@ bool check_busy(I2C_Dev* dev){
 
                 // turn things back on
                 GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
-                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
                 GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
                 GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
                 GPIO_Init(GPIOB, &GPIO_InitStruct);
 
                 GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
-                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
                 GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
                 GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
                 GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
@@ -245,6 +248,7 @@ bool check_busy(I2C_Dev* dev){
 
 void handle_hardware_failure(I2C_Dev* dev){
     hardware_errors++;
+    unstick(dev);
     dev->return_code = RESULT_ERROR;
 }
 
@@ -262,7 +266,7 @@ int8_t read_data_async(I2C_Dev* dev, uint8_t _addr,
 
     // configure the job
     dev->current_status = READING;
-    dev->address = _addr << 1;
+    dev->address = _addr;
     dev->callback = callback;
     dev->reg = _reg;
     dev->subaddress_sent = (dev->reg == 0xFF);
@@ -309,7 +313,7 @@ void bmp180_transfer_complete_cb(){
     //log_line;
 }
 
-int8_t read_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data){
+int8_t read_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data, uint8_t length){
     if (check_busy(dev))
         return RESULT_BUSY;
     // log_line;
@@ -317,7 +321,6 @@ int8_t read_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data){
 
     // Turn off interrupts while blocking
     I2C_ITConfig(dev->I2C, I2C_IT_EVT | I2C_IT_ERR, DISABLE);
-
     while_check(I2C_GetFlagStatus(dev->I2C, I2C_FLAG_BUSY), dev->return_code);
 
     I2C_Cmd(dev->I2C, ENABLE);
@@ -325,43 +328,44 @@ int8_t read_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data){
     {
         // log_line;
         I2C_GenerateSTART(dev->I2C, ENABLE);
-        while_check(!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_MODE_SELECT), dev->return_code);
-        I2C_Send7bitAddress(dev->I2C, addr << 1, I2C_Direction_Transmitter);
+        while_check(!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_MODE_SELECT), dev->return_code)
+        I2C_Send7bitAddress(dev->I2C, addr, I2C_Direction_Transmitter);
         uint32_t timeout = 500;
-        while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED) && --timeout != 0);
-        if (timeout != 0)
+        while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED) && !(I2C_GetLastEvent(dev->I2C) & AF) && timeout--);
+
+        // No acknowledgement or timeout
+        if (I2C_GetLastEvent(dev->I2C) & AF || timeout == 0)
         {
+//        log_line;
             I2C_GenerateSTOP(dev->I2C, ENABLE);
             I2C_Cmd(dev->I2C, DISABLE);
-        }
-        else
-        {
-            dev->return_code = RESULT_ERROR;
-            // log_line;
-            return dev->return_code;
+            return RESULT_ERROR;
         }
         I2C_Cmd(dev->I2C, ENABLE);
         I2C_SendData(dev->I2C, reg);
         while_check(!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTED), dev->return_code);
     }
 
-    // Read the byte
-    I2C_AcknowledgeConfig(dev->I2C, DISABLE);
+    // Read bytes
     I2C_GenerateSTART(dev->I2C, ENABLE);
     while_check(!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_MODE_SELECT), dev->return_code);
-    I2C_Cmd(dev->I2C, ENABLE);
-    I2C_Send7bitAddress(dev->I2C, addr << 1, I2C_Direction_Receiver);
-    uint32_t timeout = 500;
-    while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_BYTE_RECEIVED) && --timeout != 0);
-    if (timeout != 0)
-    {
-        *data = I2C_ReceiveData(dev->I2C);
+    //I2C_Cmd(dev->I2C, ENABLE);
+    I2C_AcknowledgeConfig(dev->I2C, ENABLE);
+    I2C_Send7bitAddress(dev->I2C, addr, I2C_Direction_Receiver);
+    while_check(!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED), dev->return_code)
+    while(length--){
+        if(length > 0){
+            while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_BYTE_RECEIVED));
+            *data = I2C_ReceiveData(dev->I2C);
+            data++;
+        }
+        if(length == 0){
+            I2C_AcknowledgeConfig(dev->I2C, DISABLE);
+            I2C_GenerateSTOP(dev->I2C, ENABLE);
+            while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_BYTE_RECEIVED));
+            *data = I2C_ReceiveData(dev->I2C);
+        }
     }
-    else
-    {
-        dev->return_code = RESULT_ERROR;
-    }
-    I2C_GenerateSTOP(dev->I2C, ENABLE);
     I2C_Cmd(dev->I2C, DISABLE);
     // log_line;
 
@@ -377,7 +381,7 @@ int8_t write_data_async(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data, 
 
     //log_line;
     dev->current_status = WRITING;
-    dev->address = addr << 1;
+    dev->address = addr;
     dev->callback = callback;
     dev->reg = reg;
     dev->subaddress_sent = (dev->reg == 0xFF);
@@ -421,11 +425,9 @@ int8_t write_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data){
     // start the transfer
     I2C_GenerateSTART(dev->I2C, ENABLE);
     while_check(!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_MODE_SELECT), dev->return_code);
-    I2C_Send7bitAddress(dev->I2C, addr << 1, I2C_Direction_Transmitter);
+    I2C_Send7bitAddress(dev->I2C, addr, I2C_Direction_Transmitter);
     uint32_t timeout = 500;
-    while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED) && !(I2C_GetLastEvent(dev->I2C) & AF)
-           && timeout--)
-        ;
+    while (!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED) && !(I2C_GetLastEvent(dev->I2C) & AF) && timeout--);
 
     // No acknowledgement or timeout
     if (I2C_GetLastEvent(dev->I2C) & AF || timeout == 0)
@@ -441,12 +443,13 @@ int8_t write_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data){
     {
 //        log_line;
         I2C_SendData(dev->I2C, reg);
+//        while (I2C_CheckEvent(I2C1, I2C_EVENT_MASTER_BYTE_TRANSMITTED) != SUCCESS);
         while_check(!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTED), dev->return_code);
     }
 
     // Write the byte with a NACK
     I2C_AcknowledgeConfig(dev->I2C, DISABLE);
-    I2C_SendData(dev->I2C, data);
+    I2C_SendData(dev->I2C, *data);
     while_check(!I2C_CheckEvent(dev->I2C, I2C_EVENT_MASTER_BYTE_TRANSMITTED), dev->return_code);
     I2C_GenerateSTOP(dev->I2C, ENABLE);
     I2C_Cmd(dev->I2C, DISABLE);
@@ -511,7 +514,7 @@ void handle_event(I2C_Dev* dev){
             if (dev->current_status == WRITING)
             {
                 // log_line;
-                I2C_SendData(dev->I2C, dev->data);
+                I2C_SendData(dev->I2C, *dev->data);
                 dev->done = true;
             }
         }
@@ -519,7 +522,7 @@ void handle_event(I2C_Dev* dev){
         else
         {
             // log_line;
-            I2C_SendData(dev->I2C, dev->data);
+            I2C_SendData(dev->I2C, *dev->data);
             dev->done = true;
         }
     }
