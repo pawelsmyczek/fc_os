@@ -196,7 +196,7 @@ void data_transfer_callback_mpu(void) {
 }
 
 void read_mpu_dma(void){
-    us = micros();
+    mpu_timestamp = micros();
     raw_mpu[0] = MPU6000_ACCEL_XOUT_H | 0x80;
     dma_transfer(&MPU6000, raw_mpu, raw_mpu, 15, &data_transfer_callback_mpu);
 }
@@ -242,9 +242,9 @@ void compute_mpu_tc_bias(void)
 
 
 void compute_angles(void){
-    uint32_t us_prev = us;
-    us = micros();
-    float seconds_diff = (float)(us - us_prev) / 100000.0f;  // should be 1us, but is 10 us TODO
+    uint64_t us_prev = mpu_timestamp;
+    mpu_timestamp = micros();
+    float seconds_diff = (float)(mpu_timestamp - us_prev) / 100000.0f;  // TODO should be 1us, but is 10 mpu_timestamp instead
     accelSum[ROLL ] = ((float)(raw_accel[ROLL ].value) / 8192.0f) - accelRTError[ROLL ];// asinf(((float)(raw_accel[ROLL ].value) / 16384.0f) / oneG);
     accelSum[PITCH] = ((float)(raw_accel[PITCH].value) / 8192.0f) - accelRTError[PITCH];// asinf((-1*(float)(raw_accel[PITCH].value) / 16384.0f) / oneG);
     accelSum[YAW  ] = ((float)(raw_accel[YAW  ].value) / 8192.0f) - accelRTError[YAW  ];
@@ -253,18 +253,18 @@ void compute_angles(void){
     gyroSum[PITCH] += (((((float)raw_gyro[PITCH].value / 16.5f))) - gyroRTError[PITCH]) * seconds_diff; //gyroSum[PITCH] + (((float)(raw_gyro[PITCH].value) / 16.4) * seconds_diff);
     gyroSum[YAW  ] += (((((float)raw_gyro[YAW  ].value / 16.5f))) - gyroRTError[YAW  ]) * seconds_diff;//gyroSum[YAW] + (((float)(raw_gyro[YAW].value) / 16.4) * seconds_diff);
 
-    angle[ROLL ] = angle[ROLL ] > 360.0f ? 0.0f : 0.996f * (gyroSum[ROLL ]) + 0.004f * accelSum[ROLL ];
-    angle[PITCH] = angle[PITCH] > 360.0f ? 0.0f : 0.996f * (gyroSum[PITCH]) + 0.004f * accelSum[PITCH];
-    angle[YAW  ] = angle[YAW  ] > 360.0f ? 0.0f : 0.996f * (gyroSum[YAW  ]) + 0.004f * accelSum[YAW  ];
+    angle[ROLL ] = angle[ROLL ] > 359.9f ? 0.0f : 0.996f * (gyroSum[ROLL ]) + 0.004f * accelSum[ROLL ];
+    angle[PITCH] = angle[PITCH] > 359.9f ? 0.0f : 0.996f * (gyroSum[PITCH]) + 0.004f * accelSum[PITCH];
+    angle[YAW  ] = angle[YAW  ] > 359.9f ? 0.0f : 0.996f * (gyroSum[YAW  ]) + 0.004f * accelSum[YAW  ];
 
     oneG = sqrtf(powf(accelSum[ROLL ], 2.0f) + powf(accelSum[PITCH], 2.0f) + powf(accelSum[YAW  ], 2.0f));
 }
 
 
 void positions_estimate(void){
-    uint32_t ms_prev = us;
-    us = millis();
-    float seconds_diff = (float)(us - ms_prev) / 1000.0f;  // should be 1ms, but is 10 us more TODO
+    uint64_t ms_prev = mpu_timestamp;
+    mpu_timestamp = millis();
+    float seconds_diff = (float)(mpu_timestamp - ms_prev) / 1000.0f;  // should be 1ms, but is 10 mpu_timestamp more TODO
     velocity[ROLL ] = velocity_previous[ROLL ] + previous_accelSum[ROLL ] + (accelSum[ROLL ] - previous_accelSum[ROLL ]);
     position[ROLL ] = position_previous[ROLL ] + velocity_previous[ROLL ] + (velocity[ROLL ] - velocity_previous[ROLL ]);
     velocity[PITCH] = velocity_previous[PITCH] + previous_accelSum[PITCH] + (accelSum[PITCH] - previous_accelSum[PITCH]);

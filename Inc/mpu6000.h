@@ -102,7 +102,7 @@ uint8_int16_t rawMPU6000Temperature;
 uint8_int16_t response;
 bool calibrated;
 
-__IO uint32_t us;
+__IO uint64_t mpu_timestamp;
 
 
 bool init_mpu(void);

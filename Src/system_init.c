@@ -52,7 +52,7 @@ void system_init(void){
     init_gpio();
     init_timers();
 
-    /*SPI devices init*/
+    /*SPI periphs init*/
 
     chip_select_init(&MPU6000_CS, GPIOA, GPIO_Pin_4);
     spi_init(&MPU6000, SPI1, SPI_CPOL_High, &dmaInitStructure1, &MPU6000_CS, DMA2_Stream3_IRQn,
@@ -64,12 +64,15 @@ void system_init(void){
             DMA_Channel_0, DMA1_Stream4,
             DMA1_Stream3, DMA_FLAG_TCIF4, DMA_FLAG_TCIF3, 0x02);
 
-    /*I2C devices init*/
+    /*I2C periph init*/
 
-    i2c_init(&BMP180, I2C1, GPIO_Pin_8, GPIO_Pin_9, &dmaInitStructure3, 100000, I2C1_EV_IRQn, I2C1_ER_IRQn,
+    i2c_init(&BMP180, I2C1, GPIO_Pin_8, GPIO_Pin_9, &dmaInitStructure3, 400000, I2C1_EV_IRQn, I2C1_ER_IRQn,
             DMA1_Stream0, DMA_Channel_1, DMA1_Stream0_IRQn,
              DMA_FLAG_TCIF0, true);
     delay_ms(100);
+
+    /*USB Init*/
+
     USBD_Init(&USB_OTG_dev,USB_OTG_FS_CORE_ID, &USR_desc,
               &USBD_CDC_cb, &USR_cb);
     delay_ms(100);
@@ -77,9 +80,8 @@ void system_init(void){
     init_motors();
     init_mpu();
     init_m25p16();
-//    delay_ms(200);
-//    BMP180_Reset();
     delay_ms(200);
+    init_bmp180();
     bmp180_version = BMP180_Check();
     BMP180_ReadCalibration();
 

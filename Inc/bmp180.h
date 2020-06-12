@@ -11,8 +11,8 @@
 #define BMP180_I2C_PORT                 I2C2 // I2C port where the BMP180 connected
 
 // BMP180 I2C related
-#define BMP180_ADDR_WRITE                     0xEE // BMP180 I2C address
-#define BMP180_ADDR_READ                     0xEF // BMP180 I2C address
+#define BMP180_ADDR_WRITE               0xEE // BMP180 I2C address
+#define BMP180_ADDR_READ                0xEF // BMP180 I2C address
 
 // BMP180 registers
 #define BMP180_PROM_START_ADDR          0xAA // E2PROM calibration data start register
@@ -36,6 +36,9 @@
 #define BMP180_PARAM_MG                 3038
 #define BMP180_PARAM_MH                -7357
 #define BMP180_PARAM_MI                 3791
+
+// reference for altitude calculation
+#define SEA_LEVEL_PRESSURE              101325
 
 
 // Calibration parameters structure
@@ -72,8 +75,42 @@ typedef enum {
     BMP180_ADVRES   = 4       // Advanced resolution (oss = 3, software oversampling)
 } BMP180_Mode_TypeDef;
 
+typedef enum {
+    START_TEMP_READ     = 0,
+    READ_TEMP           = 1,
+    START_PRESS_READ    = 2,
+    READ_PRESS          = 3
+} BMP180_State;
 
-BMP180_Calibration_TypeDef BMP180_Calibration; // Calibration parameters from E2PROM of BMP180
+typedef enum {
+    START_TEMP_READ_CB  = 0,
+    READ_TEMP_CB        = 1,
+    START_PRESS_READ_CB = 2,
+    READ_PRESS_CB       = 3
+} BMP180_Callback;
+
+typedef struct{
+    uint8_t pressure_buffer[3];
+    uint32_t pressure_read;
+
+    uint8_t temperature_buffer[2];
+
+    float altitude_current;
+
+    uint16_t temperature_read;
+    uint32_t last_update_ms;
+
+    uint32_t next_update_ms;
+
+    BMP180_State bmp_state;
+    BMP180_Mode_TypeDef mode;
+    bool new_data_available;
+} BMP180_Data;
+
+BMP180_Data                 bmp_data;
+
+
+BMP180_Calibration_TypeDef  bmp_calibration; // Calibration parameters from E2PROM of BMP180
 
 
 // Delay and Commands for different BMP180 oversampling levels
@@ -84,9 +121,9 @@ static const BMP180_OSS_TypeDef BMP_OSS[] = {
         {27, BMP180_P3_MEASURE}
 };
 
+
 int16_t temperature_read;
 int32_t pressure_read;
-
 
 // Function prototypes
 BMP180_RESULT BMP180_Check(void);
@@ -102,4 +139,21 @@ int32_t BMP180_hPa_to_mmHg(int32_t hPa);
 int32_t BMP180_hPa_to_Altitude(int32_t hPa);
 
 
+void init_bmp180(void);
+
+void temperature_calculate(void);
+void pressure_calculate(void);
+void altitude_calculate(void);
+
+void bmp180_update(void);
+
+bool read_temp_start();
+bool read_temp_perform();
+bool read_press_start();
+bool read_press_perform();
+
+void read_temp_start_callback(uint8_t result);
+void read_temp_perform_callback(uint8_t result);
+void read_press_start_callback(uint8_t result);
+void read_press_perform_callback(uint8_t result);
 #endif //FC_SOFT_BMP180_H

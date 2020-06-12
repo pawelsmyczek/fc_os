@@ -296,11 +296,8 @@ int8_t read_data_async(I2C_Dev* dev, uint8_t _addr,
     last_event = micros();
     if (is_blocking)
     {
-        //log_line;
-        while (check_busy(dev))
-            ;
+        while (check_busy(dev));
     }
-    //log_line;
     last_event = micros();
 
     return dev->return_code;
@@ -310,7 +307,6 @@ void bmp180_transfer_complete_cb(){
     BMP180.current_status = IDLE;
     if (BMP180.callback)
         BMP180.callback(BMP180.return_code);
-    //log_line;
 }
 
 int8_t read_data(I2C_Dev* dev, uint8_t addr, uint8_t reg, uint8_t* data, uint8_t length){

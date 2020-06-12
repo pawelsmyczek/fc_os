@@ -12,6 +12,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <inttypes.h>
+#include <math.h>
 
 #include "stm32f4xx.h"
 #include "stm32f4xx_conf.h"
@@ -29,8 +31,8 @@
 
 
 
-__IO uint32_t sysTickCycleCounter;
-__IO uint32_t usTicks;
+volatile uint32_t sysTickCycleCounter;
+volatile uint32_t usTicks;
 
 // USER DEFINED STRUCTS
 
@@ -95,7 +97,7 @@ typedef struct{
 
 void SysTick_Handler(void);
 volatile uint32_t millis(void);
-uint32_t micros(void);
+volatile uint64_t micros(void);
 void delay_us(uint32_t us);
 void delay_ms(uint32_t ms);
 void Fail_Handler(void);

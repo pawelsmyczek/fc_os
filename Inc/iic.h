@@ -41,7 +41,7 @@ typedef enum{
 }current_status_t;
 
 
-uint32_t last_event;
+uint64_t last_event;
 
 void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
               uint16_t            SCL_Pin,

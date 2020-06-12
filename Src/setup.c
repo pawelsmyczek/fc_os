@@ -8,15 +8,15 @@
 #include "setup.h"
 
 static __IO uint32_t elapsed_ms_since_start = 0;
-__IO uint32_t sysTickCycleCounter = 0;
-__IO uint32_t usTicks = 0;
+volatile uint32_t sysTickCycleCounter = 0;
+volatile uint32_t usTicks = 0;
 
 void SysTick_Handler(void)
 {
     ++elapsed_ms_since_start;
 }
 
-uint32_t micros(void)
+volatile uint64_t micros(void)
 {
     register uint32_t oldCycle, cycle, timeMs;
 
@@ -37,8 +37,8 @@ volatile uint32_t millis(void){
 }
 
 void delay_us(uint32_t us) {
-    __IO uint32_t cycles = usTicks * us;
-    __IO uint32_t start = DWT->CYCCNT;
+    volatile uint32_t cycles = usTicks * us;
+    volatile uint32_t start = DWT->CYCCNT;
     while(DWT->CYCCNT - start < cycles);
 }
 
