@@ -33,7 +33,7 @@ volatile uint64_t micros(void)
 
 
 volatile uint32_t millis(void){
-    return (volatile uint32_t)(elapsed_ms_since_start >> 5);
+    return (volatile uint32_t)(elapsed_ms_since_start);
 }
 
 void delay_us(uint32_t us) {

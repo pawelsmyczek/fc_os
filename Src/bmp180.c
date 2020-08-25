@@ -3,13 +3,21 @@
 //
 
 #include "bmp180.h"
+#include "mpu6000.h"
 
-
+/**
+ * Startup of BMP180 all necessary variables
+ * */
 void init_bmp180(void){
     bmp_data.next_update_ms = millis();
     bmp_data.new_data_available = false;
     bmp_data.bmp_state = START_TEMP_READ;
-    bmp_data.mode = BMP180_STANDARD;
+    bmp_data.mode = BMP180_UHIRES;
+    bmp_data.pressure_total = 0;
+    bmp_data.pressure_average_slow = 0;
+    bmp_data.ground_altitude = 0;
+    temperature_trigger = 0;
+    for(uint8_t i = 0; i < PRESS_SAMPLE_COUNT; i++) bmp_data.pressure_average_buffer[i] = 0;
 }
 
 void BMP180_WriteReg(uint8_t reg, uint8_t value) {
@@ -138,6 +146,8 @@ void temperature_calculate(void){
 void pressure_calculate(void){
     int32_t B3,B6,X3,p;
     uint32_t B4,B7;
+    int new_sample_index;
+    static int current_sample_index = 0;
     uint32_t uncompensated_press = 0;
 
     /*PRESSURE CALC*/
@@ -151,46 +161,73 @@ void pressure_calculate(void){
     B7 = ((uint32_t)uncompensated_press - B3) * (50000 >> (uint8_t)bmp_data.mode);
     if (B7 < 0x80000000) p = (B7 << 1) / B4; else p = (B7 / B4) << 1;
     p += ((((p >> 8) * (p >> 8) * BMP180_PARAM_MG) >> 16) + ((BMP180_PARAM_MH * p) >> 16) + BMP180_PARAM_MI) >> 4;
-
     bmp_data.pressure_read = p;
+    new_sample_index = current_sample_index + 1;
+    if (new_sample_index == PRESS_SAMPLE_COUNT)
+        new_sample_index = 0;
+    bmp_data.pressure_average_buffer[current_sample_index] = bmp_data.pressure_read;
+    bmp_data.pressure_total += bmp_data.pressure_average_buffer[current_sample_index];
+    bmp_data.pressure_total -= bmp_data.pressure_average_buffer[new_sample_index];
+    current_sample_index = new_sample_index;
+    bmp_data.pressure_average = (float)bmp_data.pressure_total / PRESS_SAMPLE_COUNT;
+    bmp_data.pressure_average_slow = bmp_data.pressure_average_slow * 0.98f + bmp_data.pressure_average * 0.02f;
 }
 
 void altitude_calculate(void){
-    bmp_data.altitude_current = 44330.0f*(1.0f-powf((float)(bmp_data.pressure_read)/SEA_LEVEL_PRESSURE, 1.0f / 5.255f));
+    bmp_data.altitude_current = 44330.0f*(1.0f-powf(((float)bmp_data.pressure_average_slow) / 101325.0f, 1.0f / 5.255f));
+    low_pass_filter(&bmp_data.low_pass_filtered, bmp_data.altitude_current, (1.0f / bmp_data.dt) * 0.3f);
+    bmp_data.delta_altitude = bmp_data.low_pass_filtered < bmp_data.ground_altitude? 0.0f: bmp_data.low_pass_filtered - bmp_data.ground_altitude;
+}
+
+
+/**
+ * @brief Calculates the velocity / altitude using basic phisics calculus fusing barometer and accelerometer
+ * */
+void velocity_calculate(void){
+    float velocity_current = (bmp_data.altitude_current - bmp_data.last_altitude) / bmp_data.dt;
+    bmp_data.last_altitude = bmp_data.altitude_current;
+
+    float velocity_temporary = velocity_current + accel_sum[YAW] * bmp_data.dt;
+    bmp_data.velocity_current = 0.999f * velocity_temporary + (1 - 0.999f) * velocity_current;
+    float altitude_temporary = bmp_data.altitude_calculate + (velocity_temporary * bmp_data.dt) + (0.5f * accel_sum[YAW] * pow(bmp_data.dt, 2));
+    bmp_data.altitude_calculate = 0.998f * altitude_temporary + (1 - 0.998f) * bmp_data.altitude_current;
 }
 
 void bmp180_update(void){
-    uint32_t now_ms = millis();
+    uint64_t now_ms = millis();
 
     if(now_ms > bmp_data.next_update_ms){
         switch(bmp_data.bmp_state){
             case START_TEMP_READ:
                 if(read_temp_start())
-                    bmp_data.next_update_ms += 5;
+                    bmp_data.next_update_ms += 1;
                 break;
             case READ_TEMP:
                 if(read_temp_perform())
-                    bmp_data.next_update_ms += 5;
+                    bmp_data.next_update_ms += 1;
                 break;
             case START_PRESS_READ:
                 if(read_press_start())
-                    bmp_data.next_update_ms += BMP_OSS[bmp_data.mode].OSS_delay;
+                    bmp_data.next_update_ms += 1;
                 break;
             case READ_PRESS:
                 if(read_press_perform())
-                    bmp_data.next_update_ms += 5;
+                    bmp_data.next_update_ms += 1;
                 break;
             default:
                 bmp_data.bmp_state = START_TEMP_READ;
                 break;
         }
+        bmp_data.dt = (float)(bmp_data.next_update_ms - now_ms)/1000.0f;
     }
 
     if(bmp_data.new_data_available){
         temperature_calculate();
         pressure_calculate();
-        altitude_calculate();
     }
+    altitude_calculate();
+    // velocity_calculate();
+    temperature_trigger++;
 }
 
 bool read_temp_start(){
@@ -216,29 +253,47 @@ void read_temp_start_callback(uint8_t result){
     bmp_data.last_update_ms = millis();
     bmp_data.next_update_ms = bmp_data.last_update_ms + 5;
     bmp_data.bmp_state = READ_TEMP;
-    bmp_data.new_data_available = true;
 }
 
 void read_temp_perform_callback(uint8_t result){
     (void)result;
     bmp_data.last_update_ms = millis();
-    bmp_data.next_update_ms = bmp_data.last_update_ms + 5;
+    bmp_data.next_update_ms = bmp_data.last_update_ms + 1;
     bmp_data.bmp_state = START_PRESS_READ;
-    bmp_data.new_data_available = true;
 }
 
 void read_press_start_callback(uint8_t result){
     (void)result;
     bmp_data.last_update_ms = millis();
-    bmp_data.next_update_ms = bmp_data.last_update_ms + 5;
+    bmp_data.next_update_ms = bmp_data.last_update_ms + BMP_OSS[bmp_data.mode].OSS_delay;
     bmp_data.bmp_state = READ_PRESS;
-    bmp_data.new_data_available = true;
 }
 
 void read_press_perform_callback(uint8_t result){
     (void)result;
     bmp_data.last_update_ms = millis();
-    bmp_data.next_update_ms = bmp_data.last_update_ms + 5;
+    bmp_data.next_update_ms = bmp_data.last_update_ms + 1;
     bmp_data.bmp_state = START_TEMP_READ;
     bmp_data.new_data_available = true;
 }
+
+void low_pass_filter(float* output, float input, float cut_off_freq){
+    float e_pow = 1.f - expf( -1.0f * bmp_data.dt * 2.0f * M_PI * cut_off_freq);
+    *output += (input - *output) * e_pow;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

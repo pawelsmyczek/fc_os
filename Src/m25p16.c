@@ -3,6 +3,11 @@
 //
 
 #include "m25p16.h"
+#include "usbd_cdc_core.h"
+#include "usbd_usr.h"
+#include "usbd_desc.h"
+#include "usbd_cdc_vcp.h"
+#include "stdio.h"
 
 void init_m25p16(void){
     set_spi_divisor(&M25P16, 16);
@@ -21,6 +26,10 @@ static uint8_t get_status(void){
 void read_config(uint8_t *data, uint32_t len, uint8_t addr_start){
     // READ DATA COMMAND
     // blocking sequence, not working with DMA
+    unsigned char serial_out[70];
+    int serial_out_len;
+    uint32_t progress = 0;
+    uint32_t len_out = len;
     uint8_t addr[4] = {READ_DATA, (uint8_t)(addr_start >> 8), (uint8_t)(addr_start & 0xFF), 0};
     spi_enable(&M25P16_CS);
 
@@ -32,7 +41,10 @@ void read_config(uint8_t *data, uint32_t len, uint8_t addr_start){
     while(len--){
         *data = spi_transfer(&M25P16, NULL);
         data++;
-        delay_ms(6);
+        serial_out_len = sprintf(serial_out, "DOWNLOADING IN PROGRESS: %.3f kB / %.3f kB (%.1f %%)\r", (float)progress / 1000.0f, (float)len_out / 1000.0f, ((float)progress / len_out) * 100.0f);
+        CDC_Send_DATA(serial_out, serial_out_len);
+        progress++;
+        delay_ms(1);
     }
 
     spi_disable(&M25P16_CS);

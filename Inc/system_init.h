@@ -11,6 +11,7 @@
 #include "m25p16.h"
 #include "bmp180.h"
 #include "pid.h"
+#include "MadgwickAHRS.h"
 #include "spi.h"
 #include "iic.h"
 #include "usbd_cdc_core.h"
@@ -27,6 +28,7 @@ float KP, KD, KI;
 
 PIDControl pid_angle[3];
 PIDControl pid_z_velocity;
+PIDControl pid_altitude;
 
 
 void system_init(void);

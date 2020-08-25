@@ -36,6 +36,7 @@
 #define BMP180_PARAM_MG                 3038
 #define BMP180_PARAM_MH                -7357
 #define BMP180_PARAM_MI                 3791
+#define PRESS_SAMPLE_COUNT              15
 
 // reference for altitude calculation
 #define SEA_LEVEL_PRESSURE              101325
@@ -58,7 +59,7 @@ typedef struct {
 } BMP180_Calibration_TypeDef;
 
 typedef struct {
-    uint8_t OSS_delay;
+    uint16_t OSS_delay;
     uint8_t OSS_cmd;
 } BMP180_OSS_TypeDef;
 
@@ -89,17 +90,28 @@ typedef enum {
     READ_PRESS_CB       = 3
 } BMP180_Callback;
 
+
 typedef struct{
-    uint8_t pressure_buffer[3];
-    uint32_t pressure_read;
-
     uint8_t temperature_buffer[2];
+    uint8_t pressure_buffer[3];
+    int32_t pressure_average_buffer[PRESS_SAMPLE_COUNT];
+    int32_t pressure_total;
+    int32_t pressure_read;
+    float pressure_average;
+    float pressure_average_slow;
 
+    float ground_altitude;
+    float delta_altitude;
     float altitude_current;
+    float last_altitude;
+    float velocity_current;
+    float altitude_calculate;
+    float low_pass_filtered;
 
-    uint16_t temperature_read;
+    int16_t temperature_read;
+
+    float dt;
     uint32_t last_update_ms;
-
     uint32_t next_update_ms;
 
     BMP180_State bmp_state;
@@ -112,6 +124,7 @@ BMP180_Data                 bmp_data;
 
 BMP180_Calibration_TypeDef  bmp_calibration; // Calibration parameters from E2PROM of BMP180
 
+int16_t temperature_trigger;
 
 // Delay and Commands for different BMP180 oversampling levels
 static const BMP180_OSS_TypeDef BMP_OSS[] = {
@@ -121,9 +134,6 @@ static const BMP180_OSS_TypeDef BMP_OSS[] = {
         {27, BMP180_P3_MEASURE}
 };
 
-
-int16_t temperature_read;
-int32_t pressure_read;
 
 // Function prototypes
 BMP180_RESULT BMP180_Check(void);
@@ -144,6 +154,7 @@ void init_bmp180(void);
 void temperature_calculate(void);
 void pressure_calculate(void);
 void altitude_calculate(void);
+void velocity_calculate(void);
 
 void bmp180_update(void);
 
@@ -156,4 +167,5 @@ void read_temp_start_callback(uint8_t result);
 void read_temp_perform_callback(uint8_t result);
 void read_press_start_callback(uint8_t result);
 void read_press_perform_callback(uint8_t result);
+void low_pass_filter(float* output, float input, float cut_off_freq);
 #endif //FC_SOFT_BMP180_H

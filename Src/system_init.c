@@ -41,8 +41,9 @@ __IO uint32_t *output_channels[] = {&(TIM8->CCR1), // motor 1
 };
 
 
-float KP = 0.05f, KI =  0.005f, KD = 0.15f;
+float KP = 3.0f, KI =  0.005f, KD = 0.15f;
 float KP_vel = 2.0f, KI_vel =  0.5f, KD_vel = 0.7f;
+float KP_alt = 10.0f, KI_alt =  0.05f, KD_alt = 0.2f;
 uint8_t bmp180_version;
 
 
@@ -78,6 +79,7 @@ void system_init(void){
     delay_ms(100);
 
     init_motors();
+    delay_ms(1000);
     init_mpu();
     init_m25p16();
     delay_ms(200);
@@ -91,6 +93,9 @@ void system_init(void){
                  AUTOMATIC, REVERSE);
     }
     pid_init(&pid_z_velocity, KP_vel, KI_vel, KD_vel, 0.01f, -150.0f, 150.0f,
+             AUTOMATIC, DIRECT);
+
+    pid_init(&pid_altitude, KP_alt, KI_alt, KD_alt, 0.01f, -80.0f, 80.0f,
              AUTOMATIC, DIRECT);
 
     toggle_leds_on_start();
@@ -251,7 +256,7 @@ void init_gpio(void){
 
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_9;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
 
@@ -259,7 +264,7 @@ void init_gpio(void){
 
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
 
@@ -422,9 +427,9 @@ void init_motors(void){
 void toggle_leds_on_start(void) {
     for(uint8_t i = 0; i < 10; i++ ){
         INFO_LED_ON;
-        delay_ms(20);
+        delay_ms(100);
         INFO_LED_OFF;
-        delay_ms(20);
+        delay_ms(100);
     }
 
 }
