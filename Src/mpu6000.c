@@ -5,6 +5,7 @@
 #include "mpu6000.h"
 #include "math.h"
 #include "MadgwickAHRS.h"
+#include "kalman_filter.h"
 
 float accelRTError[3]      = {0.0f, 0.0f, 0.0f};
 float gyroRTError[3]       = {0.0f, 0.0f, 0.0f};
@@ -18,13 +19,13 @@ float mpu6000Temperature1  = 0.0f;
 uint8_t counter[3]         = {0, 0, 0};
 float accel_sum[3]         = {0.0f, 0.0f, 0.0f};
 float previous_accelSum[3] = {0.0f, 0.0f, 0.0f};
-float accel_angle[3]       = {0.0f, 0.0f, 0.0f};
+float angle_init[3]       = {0.0f, 0.0f, 0.0f};
 float gyro_sum[3]          = {0.0f, 0.0f, 0.0f};
-float rotation_matrix[9]        = {0.0f, 0.0f, 0.0f,
-                                   0.0f, 0.0f, 0.0f,
-                                   0.0f, 0.0f, 0.0f};
+//float rotation_matrix[9]        = {0.0f, 0.0f, 0.0f,
+//                                   0.0f, 0.0f, 0.0f,
+//                                   0.0f, 0.0f, 0.0f};
 float angle[3]             = {0.0f, 0.0f, 0.0f};
-float angle_from_rot[3]             = {0.0f, 0.0f, 0.0f};
+float real_angle[3]             = {0.0f, 0.0f, 0.0f};
 
 const uint16_t SAMPLES_NUM = 20000;
 float oneG = 9.81f;
@@ -161,6 +162,11 @@ bool init_mpu(void){
     ///////////////////////////////////
 
     // delay_ms(100);
+    for(uint8_t i = 0; i < 3; i++){
+        init_kalman_struct(&gyro_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
+        init_kalman_struct(&accel_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
+
+    }
 
     calibrate_mpu();
 
@@ -211,6 +217,17 @@ void read_mpu_dma(void){
 
 void calibrate_mpu(void) {
 
+    for(uint8_t i = 0; i < 40; i++){
+        compute_mpu_tc_bias();
+        accel_sum[ROLL ] = (float)(raw_accel[ROLL ].value) / 8192.0f;// asinff(((float)(raw_accel[ROLL ].value) / 16384.0f) / oneG);
+        accel_sum[PITCH] = (float)(raw_accel[PITCH].value) / 8192.0f;// asinff((-1*(float)(raw_accel[PITCH].value) / 16384.0f) / oneG);
+        accel_sum[YAW  ] = (float)(raw_accel[YAW  ].value) / 8192.0f;
+
+        angle_init[ROLL ] = atanf(accel_sum[PITCH] / sqrtf(powf(accel_sum[ROLL ], 2.0f) + powf(accel_sum[YAW  ], 2.0f)))  * 180.0f / (float)M_PI ;
+        angle_init[PITCH] = atanf(accel_sum[ROLL ] / sqrtf(powf(accel_sum[PITCH], 2.0f) + powf(accel_sum[YAW  ], 2.0f))) * 180.0f / (float)M_PI ;
+    }
+
+
 
     for (uint16_t samples = 0; samples < SAMPLES_NUM; samples++) {
         compute_mpu_tc_bias();
@@ -228,9 +245,7 @@ void calibrate_mpu(void) {
         gyroRTError[axis] = gyroRTError[axis] / (float)SAMPLES_NUM;
     }
     calibrated = true;
-//    gyro_sum[ROLL ] = (float)raw_gyro[ROLL ].value / 32.8f - gyroRTError[ROLL ];
-//    gyro_sum[PITCH] = (float)raw_gyro[PITCH].value / 32.8f - gyroRTError[PITCH];
-//    gyro_sum[YAW  ] = (float)raw_gyro[YAW  ].value / 32.8f - gyroRTError[YAW  ];
+
     oneG = sqrtf(powf((float)raw_accel[ROLL ].value, 2.0f) + powf((float)raw_accel[PITCH].value, 2.0f) + powf((float)raw_accel[YAW ].value, 2.0f));
 }
 
@@ -256,8 +271,8 @@ void compute_angles(void){
     accel_sum[PITCH] = ((float)(raw_accel[PITCH].value) / 8192.0f) - accelRTError[PITCH];// asinff((-1*(float)(raw_accel[PITCH].value) / 16384.0f) / oneG);
     accel_sum[YAW  ] = ((float)(raw_accel[YAW  ].value) / 8192.0f) - accelRTError[YAW  ];
 
-    accel_angle[ROLL] = atanf(accel_sum[ROLL ] / sqrtf(powf(accel_sum[PITCH], 2.0f) + powf(accel_sum[YAW  ], 2.0f)));
-    accel_angle[PITCH] = atanf(accel_sum[PITCH] / sqrtf(powf(accel_sum[ROLL ], 2.0f) + powf(accel_sum[YAW  ], 2.0f)));
+//    angle_init[ROLL] = atanf(accel_sum[ROLL ] / sqrtf(powf(accel_sum[PITCH], 2.0f) + powf(accel_sum[YAW  ], 2.0f)));
+//    angle_init[PITCH] = atanf(accel_sum[PITCH] / sqrtf(powf(accel_sum[ROLL ], 2.0f) + powf(accel_sum[YAW  ], 2.0f)));
 
     gyro_sum[ROLL ] += (((float)raw_gyro[ROLL ].value / 65.5f) - gyroRTError[ROLL ]) * seconds_diff;//gyro_sum[ROLL] + (((float)(raw_gyro[ROLL].value) / 16.4) * seconds_diff);
     gyro_sum[PITCH] += (((float)raw_gyro[PITCH].value / 65.5f) - gyroRTError[PITCH]) * seconds_diff; //gyro_sum[PITCH] + (((float)(raw_gyro[PITCH].value) / 16.4) * seconds_diff);
@@ -269,8 +284,8 @@ void compute_angles(void){
 
 
     // here we check for data received not valid
-    angle[ROLL ] = gyro_sum[ROLL ] > 359.9f || gyro_sum[ROLL ] < -359.9f? 0.0f : 0.996f * (gyro_sum[ROLL ]) + 0.004f * accel_angle[ROLL ];
-    angle[PITCH] = gyro_sum[PITCH] > 359.9f || gyro_sum[PITCH] < -359.9f? 0.0f : 0.996f * (gyro_sum[PITCH]) + 0.004f * accel_angle[PITCH];
+//    angle[ROLL ] = gyro_sum[ROLL ] > 359.9f || gyro_sum[ROLL ] < -359.9f? 0.0f : 0.996f * (gyro_sum[ROLL ]) + 0.004f * angle_init[ROLL ];
+//    angle[PITCH] = gyro_sum[PITCH] > 359.9f || gyro_sum[PITCH] < -359.9f? 0.0f : 0.996f * (gyro_sum[PITCH]) + 0.004f * angle_init[PITCH];
     // we keep the standard method for yaw angle, since the error for that angle is relatively small
     angle[YAW  ] = gyro_sum[YAW  ] > 359.9f || gyro_sum[YAW  ] < -359.9f? 0.0f : 0.996f * (gyro_sum[YAW  ]) + 0.004f * accel_sum[YAW  ];
 
@@ -281,13 +296,17 @@ void compute_angles(void){
             (((float)raw_gyro[YAW  ].value / 65.5f) - gyroRTError[YAW  ]) * ((float)M_PI / 180.0f) ,
             ((float)(raw_accel[ROLL ].value) / 8192.0f) - accelRTError[ROLL ]  ,
             ((float)(raw_accel[PITCH].value) / 8192.0f) - accelRTError[PITCH]  ,
-            (float)(raw_accel[YAW  ].value) / 8192.0f
+            (float)(raw_accel[YAW  ].value) / 8192.0f                        
     );
 
-    angle_from_rot[ROLL ] = atan2f( 2.0f * (q0*q1 + q2*q3), q0*q0 - q1*q1 - q2*q2 + q3*q3 ) * 180.0f / (float)M_PI ;
-    angle_from_rot[PITCH] = -asinf( 2.0f * (q1*q3 - q0*q2) )                                * 180.0f / (float)M_PI ;
-    angle_from_rot[YAW  ] = atan2f( 2.0f * (q1*q2 + q0*q3), q0*q0 + q1*q1 - q2*q2 - q3*q3 ) * 180.0f / (float)M_PI ;
-
+    real_angle[ROLL ] = atan2f(2.0f * (q0 * q1 + q2 * q3), q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3 ) * 180.0f / (float)M_PI ;
+    real_angle[PITCH] = -asinf(2.0f * (q1 * q3 - q0 * q2) ) * 180.0f / (float)M_PI ;
+    real_angle[YAW  ] = atan2f(2.0f * (q1 * q2 + q0 * q3), q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3 ) * 180.0f / (float)M_PI ;
+    real_angle[ROLL ] += angle_init[ROLL ];
+    real_angle[PITCH] -= angle_init[PITCH];
+    // angle_init[ROLL ] = update_kalman(&gyro_estimate[ROLL ], real_angle[ROLL ]);
+    // angle_init[PITCH] = update_kalman(&gyro_estimate[PITCH], real_angle[PITCH]);
+    // angle_init[YAW  ] = update_kalman(&gyro_estimate[YAW  ], real_angle[YAW  ]);
     // oneG = sqrtf(powf(accel_sum[ROLL ], 2.0f) + powf(accel_sum[PITCH], 2.0f) + powf(accel_sum[YAW  ], 2.0f));
 }
 
@@ -319,18 +338,18 @@ void positions_estimate(void){
 
 }
 
-void create_rotation_matrix(void){
-    rotation_matrix[0] = cosf(angle[PITCH])*cosf(angle[YAW]);
-    rotation_matrix[1] = sinf(angle[ROLL])*sinf(angle[PITCH])*cosf(angle[YAW]) - cosf(angle[ROLL])*sinf(angle[YAW]);
-    rotation_matrix[2] = cosf(angle[ROLL])*sinf(angle[PITCH])*cosf(angle[YAW]) + sinf(angle[ROLL])*sinf(angle[YAW]);
-    rotation_matrix[3] = cosf(angle[PITCH])*sinf(angle[YAW]);
-    rotation_matrix[4] = sinf(angle[ROLL])*sinf(angle[PITCH])*sinf(angle[YAW]) + cosf(angle[ROLL])*cosf(angle[YAW]);
-    rotation_matrix[5] = cosf(angle[ROLL])*sinf(angle[PITCH])*sinf(angle[YAW]) - sinf(angle[ROLL])*cosf(angle[YAW]);
-    rotation_matrix[6] = -1.0f*sinf(angle[PITCH]);
-    rotation_matrix[7] = sinf(angle[ROLL])*cosf(angle[PITCH]);
-    rotation_matrix[8] = cosf(angle[ROLL])*cosf(angle[PITCH]);
-
-}
+//void create_rotation_matrix(void){
+//    rotation_matrix[0] = cosf(angle[PITCH])*cosf(angle[YAW]);
+//    rotation_matrix[1] = sinf(angle[ROLL])*sinf(angle[PITCH])*cosf(angle[YAW]) - cosf(angle[ROLL])*sinf(angle[YAW]);
+//    rotation_matrix[2] = cosf(angle[ROLL])*sinf(angle[PITCH])*cosf(angle[YAW]) + sinf(angle[ROLL])*sinf(angle[YAW]);
+//    rotation_matrix[3] = cosf(angle[PITCH])*sinf(angle[YAW]);
+//    rotation_matrix[4] = sinf(angle[ROLL])*sinf(angle[PITCH])*sinf(angle[YAW]) + cosf(angle[ROLL])*cosf(angle[YAW]);
+//    rotation_matrix[5] = cosf(angle[ROLL])*sinf(angle[PITCH])*sinf(angle[YAW]) - sinf(angle[ROLL])*cosf(angle[YAW]);
+//    rotation_matrix[6] = -1.0f*sinf(angle[PITCH]);
+//    rotation_matrix[7] = sinf(angle[ROLL])*cosf(angle[PITCH]);
+//    rotation_matrix[8] = cosf(angle[ROLL])*cosf(angle[PITCH]);
+//
+//}
 
 void movement_end_check(void)
 {

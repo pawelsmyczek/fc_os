@@ -39,9 +39,10 @@ void read_config(uint8_t *data, uint32_t len, uint8_t addr_start){
     spi_transfer(&M25P16, addr[3]);
 
     while(len--){
-        *data = spi_transfer(&M25P16, NULL);
+        *data = spi_transfer(&M25P16, 0);
         data++;
-        serial_out_len = sprintf(serial_out, "DOWNLOADING IN PROGRESS: %.3f kB / %.3f kB (%.1f %%)\r", (float)progress / 1000.0f, (float)len_out / 1000.0f, ((float)progress / len_out) * 100.0f);
+        serial_out_len = sprintf(serial_out, "DOWNLOADING IN PROGRESS: %.3f kB / %.3f kB (%.1f %%)\r",
+                            (float)progress / 1000.0f, (float)len_out / 1000.0f, ((float)progress / len_out) * 100.0f);
         CDC_Send_DATA(serial_out, serial_out_len);
         progress++;
         delay_ms(1);

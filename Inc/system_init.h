@@ -14,11 +14,11 @@
 #include "MadgwickAHRS.h"
 #include "spi.h"
 #include "iic.h"
+#include "uart.h"
 #include "usbd_cdc_core.h"
 #include "usbd_usr.h"
 #include "usbd_desc.h"
 #include "usbd_cdc_vcp.h"
-#include "kalman_filter.h"
 
 
 #define TIM_ARR     (uint16_t)1999

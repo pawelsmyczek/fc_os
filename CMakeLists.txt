@@ -36,7 +36,7 @@ PROJECT(fc_soft C CXX ASM)
 set(CMAKE_CXX_STANDARD 11)
 
 #add_definitions(-DARM_MATH_CM4 -DARM_MATH_MATRIX_CHECK -DARM_MATH_ROUNDING -D__FPU_PRESENT=1)
-add_definitions(-DUSE_STDPERIPH_DRIVER -DSTM32F40XX -DUSE_USB_OTG_FS -DBMP180_API)
+add_definitions(-DUSE_STDPERIPH_DRIVER -DSTM32F40XX -DUSE_USB_OTG_FS)
 
 file(GLOB_RECURSE SOURCES "startup/*.*" "Middlewares/*.*" "Drivers/*.*" "Src/*.*")
 
@@ -45,7 +45,9 @@ include_directories(Inc Drivers/STM32F4xx_StdPeriph_Driver/inc
         Drivers/CMSIS/Include
         Drivers/STM32_USB_Device_Library/Class/cdc/inc
         Drivers/STM32_USB_Device_Library/Core/inc
-        Drivers/STM32_USB_HOST_Library/Core/inc Drivers/STM32_USB_OTG_Driver/inc Drivers/vcp/inc)
+        Drivers/STM32_USB_HOST_Library/Core/inc
+        Drivers/STM32_USB_OTG_Driver/inc
+        Drivers/vcp/inc)
 
 add_executable(${PROJECT_NAME}.elf ${SOURCES} ${LINKER_SCRIPT})
 

@@ -46,7 +46,7 @@ void BMP180_Reset() {
 void BMP180_ReadCalibration(void) {
     uint8_t buffer[BMP180_PROM_DATA_LEN];
 
-    read_data(&BMP180, BMP180_ADDR_READ, BMP180_PROM_START_ADDR, &buffer, BMP180_PROM_DATA_LEN);
+    read_data(&BMP180, BMP180_ADDR_READ, BMP180_PROM_START_ADDR, buffer, BMP180_PROM_DATA_LEN);
     bmp_calibration.AC1 = (buffer[0] << 8) | buffer[1];
     bmp_calibration.AC2 = (buffer[2] << 8) | buffer[3];
     bmp_calibration.AC3 = (buffer[4] << 8) | buffer[5];
@@ -61,7 +61,7 @@ void BMP180_ReadCalibration(void) {
 }
 
 void BMP180_Read_UT(uint16_t* UT) {
-    uint8_t* buf;
+    uint8_t* buf = NULL;
     BMP180_WriteReg(BMP180_CTRL_MEAS_REG,BMP180_T_MEASURE);
     delay_ms(5); // Wait for 4.5ms by datasheet
     read_data_async(&BMP180, BMP180_ADDR_READ, BMP180_ADC_OUT_MSB_REG,2, buf, NULL, true);

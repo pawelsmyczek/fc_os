@@ -60,18 +60,18 @@ int main(void)
     system_init();
 
     uint16_t pwm_out = 1000;
-    uint16_t pwm_out_high = 1275;
+    uint16_t pwm_out_high = 1380;
     uint16_t pwm_out_low = 1000;
     unsigned char serial_out[70];
     int serial_out_len;
     int serial_in_len;
     int bmp_calibration_time = 10000;
-    char serial_in_buffer = NULL;
+    char serial_in_buffer = '\0';
     char serial_in_buffer_mul[2] = "";
     uint16_t pwm_out_max = 1500;
     uint16_t pwm_out_min = 1018;
     uint16_t pwm_lf = 0, pwm_rf = 0, pwm_lb = 0, pwm_rb = 0;
-    uint32_t test_procedure_time = 15000;
+    uint32_t test_procedure_time = 4000;
     uint16_t height_increase_time = 100;
     uint32_t ellapsed_time = 0;
 
@@ -209,6 +209,7 @@ int main(void)
             serial_out_len = sprintf(serial_out, "PWM_RF - %u, PWM_RB - %u, PWM_LB - %u, PWM_LF - %u\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf);
             // serial_out_len = sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", angle[ROLL], angle[PITCH], angle[YAW]);
             CDC_Send_DATA(serial_out, serial_out_len);
+            pwm_out+=1;
             delay_ms(10);
         }
         uint16_t incr_data = 0;
@@ -221,7 +222,7 @@ int main(void)
              * start height increase until the set point is reached
              * */
             if(bmp_data.delta_altitude < (&pid_altitude)->set_point - 0.2f){
-                if(pwm_out < pwm_out_high + 30)
+                if(pwm_out < pwm_out_high + 50)
                     pwm_out++;
             } else{
                 pwm_out = pwm_out_high;
@@ -230,9 +231,9 @@ int main(void)
              * end height increase until the set point is reached
              * */
             for(uint8_t i = 0; i < 3; i++){
-                (&pid_angle[i])->input = i == YAW? angle[i] : angle_from_rot[i];
+                (&pid_angle[i])->input = real_angle[i];
                 pid_compute(&pid_angle[i]);
-                (&pid_angle[i])->set_point =  0.0f;
+                (&pid_angle[i])->set_point = 0.0f;
             }
 
             (&pid_altitude)->input =  bmp_data.delta_altitude;
@@ -253,8 +254,8 @@ int main(void)
             write_motor(MOTOR_4, pwm_lf);
             if(incr_data < 1024){
                 flight_data_file.height_data[incr_data] = bmp_data.delta_altitude;
-                flight_data_file.angle_roll[incr_data]  = angle_from_rot[ROLL];
-                flight_data_file.angle_pitch[incr_data] = angle_from_rot[PITCH];
+                flight_data_file.angle_roll[incr_data]  = real_angle[ROLL];
+                flight_data_file.angle_pitch[incr_data] = real_angle[PITCH];
                 flight_data_file.angle_yaw[incr_data]   = angle[YAW];
             }
             // serial_out_len = sprintf(serial_out, "PWM_RF - %u, PWM_RB - %u, PWM_LB - %u, PWM_LF - %u, Z_VELOCITY - %.1f\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf, velocity[YAW]);
@@ -330,7 +331,7 @@ int main(void)
             delay_ms(10);
         }
         if(serial_in_buffer == 'g'){
-            serial_out_len = sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", angle_from_rot[ROLL], angle_from_rot[PITCH], angle_from_rot[YAW]);
+            serial_out_len = sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", real_angle[ROLL], real_angle[PITCH], real_angle[YAW]);
             CDC_Send_DATA(serial_out, serial_out_len);
             delay_ms(10);
         }

@@ -43,7 +43,7 @@ __IO uint32_t *output_channels[] = {&(TIM8->CCR1), // motor 1
 
 float KP = 3.0f, KI =  0.005f, KD = 0.15f;
 float KP_vel = 2.0f, KI_vel =  0.5f, KD_vel = 0.7f;
-float KP_alt = 10.0f, KI_alt =  0.05f, KD_alt = 0.2f;
+float KP_alt = 10.0f, KI_alt =  0.05f, KD_alt = 3.0f;
 uint8_t bmp180_version;
 
 

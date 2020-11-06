@@ -1012,7 +1012,7 @@ void USART_SmartCardNACKCmd(USART_TypeDef* USARTx, FunctionalState NewState)
       -@- A pulse of width less than two and greater than one PSC period(s) may or may
           not be rejected.
       -@- The receiver set up time should be managed by software. The IrDA physical layer
-          specification specifies a minimum of 10 us delay between transmission and
+          specification specifies a minimum of 10 mpu_timestamp delay between transmission and
           reception (IrDA is a half duplex protocol).
       -@- In IrDA mode, the following bits must be kept cleared:
         (+@) LINEN, STOP and CLKEN bits in the USART_CR2 register.

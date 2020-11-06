@@ -93,11 +93,11 @@ float mpu6000Temperature1;
 uint8_t counter[3];
 float accel_sum[3];
 float previous_accelSum[3];
-float accel_angle[3];
+float angle_init[3];
 float gyro_sum[3];
-float rotation_matrix[9];
+// float rotation_matrix[9];
 float angle[3];
-float angle_from_rot[3];
+float real_angle[3];
 
 uint8_int16_t raw_accel[3];
 uint8_int16_t raw_gyro[3];
@@ -115,7 +115,7 @@ void read_mpu_dma(void);
 void calibrate_mpu(void);
 void compute_mpu_tc_bias(void);
 void compute_angles(void);
-void create_rotation_matrix(void);
+// void create_rotation_matrix(void);
 void movement_end_check();
 void positions_estimate(void);
 
