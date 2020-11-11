@@ -11,24 +11,32 @@
 #include "m25p16.h"
 #include "bmp180.h"
 #include "pid.h"
-#include "MadgwickAHRS.h"
 #include "spi.h"
 #include "iic.h"
 #include "uart.h"
+#include "hcsr04.h"
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "usbd_cdc_core.h"
 #include "usbd_usr.h"
 #include "usbd_desc.h"
 #include "usbd_cdc_vcp.h"
-
+#include "MadgwickAHRS.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define TIM_ARR     (uint16_t)1999
 #define TIM_CCR     (uint16_t)1000
 
-float KP, KD, KI;
+extern float KP, KD, KI;
 
-PIDControl pid_angle[3];
-PIDControl pid_z_velocity;
-PIDControl pid_altitude;
+extern PIDControl pid_angle[3];
+extern PIDControl pid_z_velocity;
+extern PIDControl pid_altitude;
 
 
 void system_init(void);

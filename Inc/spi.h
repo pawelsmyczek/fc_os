@@ -8,7 +8,7 @@
 #include "board.h"
 
 
-uint8_t* dummyread;
+extern uint8_t* dummyread;
 
 
 void chip_select_init(CS_Pin* pin, GPIO_TypeDef* gpio, uint16_t pinNumber);

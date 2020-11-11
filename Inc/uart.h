@@ -6,6 +6,8 @@
 #define FC_SOFT_UART_H
 #include "board.h"
 
+
+
 typedef enum {
     MODE_8N1,
     MODE_8E2

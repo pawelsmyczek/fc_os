@@ -25,8 +25,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 //#include "stm32f4_discovery.h"
-#include <stdio.h>
-#include "system_init.h"
 
 
 /* Exported types ------------------------------------------------------------*/

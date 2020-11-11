@@ -15,8 +15,16 @@
 #include <inttypes.h>
 #include <math.h>
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "stm32f4xx.h"
 #include "stm32f4xx_conf.h"
+#ifdef __cplusplus
+}
+#endif
+
 
 #define DWT_CTRL    (*(volatile uint32_t *)0xE0001000)
 #define DWT_CYCCNT  ((volatile uint32_t *)0xE0001004)
@@ -34,20 +42,20 @@
 
 
 
-volatile uint32_t sysTickCycleCounter;
-volatile uint32_t usTicks;
+extern volatile uint32_t sysTickCycleCounter;
+extern volatile uint32_t usTicks;
 
 // USER DEFINED STRUCTS
 
 
-DMA_InitTypeDef             dmaInitStructure1;
-DMA_InitTypeDef             dmaInitStructure2;
-DMA_InitTypeDef             dmaInitStructure3;
-DMA_InitTypeDef             dmaInitStructure4;
-RCC_ClocksTypeDef           RCC_Clocks;
-GPIO_InitTypeDef            GPIO_InitStructure;
-TIM_TimeBaseInitTypeDef     TIM_TimeBaseInitStructure;
-TIM_OCInitTypeDef           TIM_OCInitStructure;
+extern DMA_InitTypeDef             dmaInitStructure1;
+extern DMA_InitTypeDef             dmaInitStructure2;
+extern DMA_InitTypeDef             dmaInitStructure3;
+extern DMA_InitTypeDef             dmaInitStructure4;
+extern RCC_ClocksTypeDef           RCC_Clocks;
+extern GPIO_InitTypeDef            GPIO_InitStructure;
+extern TIM_TimeBaseInitTypeDef     TIM_TimeBaseInitStructure;
+extern TIM_OCInitTypeDef           TIM_OCInitStructure;
 
 typedef struct{
     GPIO_TypeDef* GPIO;
@@ -123,11 +131,11 @@ typedef struct{
 
 
 
-void SysTick_Handler(void);
-volatile uint32_t millis(void);
-volatile uint64_t micros(void);
-void delay_us(uint32_t us);
-void delay_ms(uint32_t ms);
-void Fail_Handler(void);
+extern void SysTick_Handler(void);
+extern volatile uint32_t millis(void);
+extern volatile uint64_t micros(void);
+extern void delay_us(uint32_t us);
+extern void delay_ms(uint32_t ms);
+extern void Fail_Handler(void);
 
 #endif //FC_SOFT_SETUP_H

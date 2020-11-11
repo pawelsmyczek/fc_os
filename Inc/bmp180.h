@@ -5,8 +5,8 @@
 #ifndef FC_SOFT_BMP180_H
 #define FC_SOFT_BMP180_H
 
-#include "iic.h"
-#include "setup.h"
+
+#include <cstdint>
 
 #define BMP180_I2C_PORT                 I2C2 // I2C port where the BMP180 connected
 
@@ -42,6 +42,32 @@
 #define SEA_LEVEL_PRESSURE              101325
 
 
+typedef enum {
+    BMP180_LOWPOWER = 0,      // Ultra low power mode (oss = 0)
+    BMP180_STANDARD = 1,      // Standard mode (oss = 1)
+    BMP180_HIRES    = 2,      // High resolution (oss = 2)
+    BMP180_UHIRES   = 3,      // Ultra high resolution (oss = 3)
+    BMP180_ADVRES   = 4       // Advanced resolution (oss = 3, software oversampling)
+} BMP180_Mode_TypeDef;
+
+typedef enum {
+    START_TEMP_READ     = 0,
+    READ_TEMP           = 1,
+    START_PRESS_READ    = 2,
+    READ_PRESS          = 3
+} BMP180_State;
+
+typedef struct {
+    uint16_t OSS_delay;
+    uint8_t OSS_cmd;
+} BMP180_OSS_TypeDef;
+
+typedef enum {
+    BMP180_ERROR   = 0,
+    BMP180_SUCCESS = !BMP180_ERROR
+} BMP180_RESULT;
+
+
 // Calibration parameters structure
 typedef struct {
     int16_t AC1;
@@ -58,30 +84,68 @@ typedef struct {
     int32_t B5;
 } BMP180_Calibration_TypeDef;
 
-typedef struct {
-    uint16_t OSS_delay;
-    uint8_t OSS_cmd;
-} BMP180_OSS_TypeDef;
 
-typedef enum {
-    BMP180_ERROR   = 0,
-    BMP180_SUCCESS = !BMP180_ERROR
-} BMP180_RESULT;
+class BMP_180
+{
 
-typedef enum {
-    BMP180_LOWPOWER = 0,      // Ultra low power mode (oss = 0)
-    BMP180_STANDARD = 1,      // Standard mode (oss = 1)
-    BMP180_HIRES    = 2,      // High resolution (oss = 2)
-    BMP180_UHIRES   = 3,      // Ultra high resolution (oss = 3)
-    BMP180_ADVRES   = 4       // Advanced resolution (oss = 3, software oversampling)
-} BMP180_Mode_TypeDef;
+    BMP_180(const BMP_180&) = delete;
+    const BMP_180& operator=(const BMP_180&) = delete;
+public:
+    BMP_180() noexcept;
 
-typedef enum {
-    START_TEMP_READ     = 0,
-    READ_TEMP           = 1,
-    START_PRESS_READ    = 2,
-    READ_PRESS          = 3
-} BMP180_State;
+    ~BMP_180() noexcept;
+
+    void reset();
+
+    BMP180_RESULT check(void);
+    void read_calibration(void);
+
+    void temperature_calculate(void);
+    void pressure_calculate(void);
+    void altitude_calculate(void);
+
+    void bmp180_update(void);
+
+    bool read_temp_start();
+    bool read_temp_perform();
+    bool read_press_start();
+    bool read_press_perform();
+    void low_pass_filter(float* output, float input, float cut_off_freq);
+private:
+    uint8_t temperature_buffer[2]{};
+    uint8_t pressure_buffer[3]{};
+    int32_t pressure_average_buffer[PRESS_SAMPLE_COUNT]{};
+    int32_t pressure_total{};
+    int32_t pressure_read{};
+    float pressure_average{};
+    float pressure_average_slow{};
+
+    float ground_altitude{};
+    float delta_altitude{};
+    float altitude_current{};
+    float last_altitude{};
+    float velocity_current{};
+    float altitude_calculated{};
+    float low_pass_filtered{};
+
+    int16_t temperature_read{};
+
+    float dt{};
+    uint32_t last_update_ms{};
+    uint32_t next_update_ms;
+
+    BMP180_State bmp_state;
+    BMP180_Mode_TypeDef mode;
+    bool new_data_available;
+
+    BMP180_Calibration_TypeDef  bmp_calibration{}; // Calibration parameters from E2PROM of BMP180
+
+    int16_t temperature_trigger{};
+
+};
+
+
+
 
 typedef enum {
     START_TEMP_READ_CB  = 0,
@@ -119,12 +183,12 @@ typedef struct{
     bool new_data_available;
 } BMP180_Data;
 
-BMP180_Data                 bmp_data;
+extern BMP180_Data                 bmp_data;
 
 
-BMP180_Calibration_TypeDef  bmp_calibration; // Calibration parameters from E2PROM of BMP180
+extern BMP180_Calibration_TypeDef  bmp_calibration; // Calibration parameters from E2PROM of BMP180
 
-int16_t temperature_trigger;
+extern int16_t temperature_trigger;
 
 // Delay and Commands for different BMP180 oversampling levels
 static const BMP180_OSS_TypeDef BMP_OSS[] = {
@@ -154,7 +218,6 @@ void init_bmp180(void);
 void temperature_calculate(void);
 void pressure_calculate(void);
 void altitude_calculate(void);
-void velocity_calculate(void);
 
 void bmp180_update(void);
 
@@ -168,4 +231,5 @@ void read_temp_perform_callback(uint8_t result);
 void read_press_start_callback(uint8_t result);
 void read_press_perform_callback(uint8_t result);
 void low_pass_filter(float* output, float input, float cut_off_freq);
+
 #endif //FC_SOFT_BMP180_H

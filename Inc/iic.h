@@ -41,7 +41,7 @@ typedef enum{
 }current_status_t;
 
 
-uint64_t last_event;
+extern uint64_t last_event;
 
 void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
               uint16_t            SCL_Pin,
@@ -81,4 +81,6 @@ void handle_event(I2C_Dev* dev);
 void DMA1_Stream0_IRQHandler(void);
 void I2C1_ER_IRQHandler(void);
 void I2C1_EV_IRQHandler(void);
+
+
 #endif //FC_SOFT_IIC_H

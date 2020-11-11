@@ -32,6 +32,31 @@ static uint32_t current_position;
 static uint32_t config_size;
 static uint32_t num_pages_for_config;
 
+
+class M25P16_
+{
+    M25P16_(const M25P16_&) = delete;
+    const M25P16_& operator=(const M25P16_&) = delete;
+public:
+
+    M25P16_() noexcept;
+    ~M25P16_() noexcept;
+
+    void init_m25p16(void);
+    uint8_t get_status(void);
+    void read_config(uint8_t *data, uint32_t len, uint8_t addr_start);
+    bool write_config(const uint8_t *data, const uint32_t len);
+    void write_page(uint8_t* data);
+    void read_mem(uint8_t* data, uint8_t len);
+private:
+    uint32_t current_page;
+    uint32_t current_position;
+    uint32_t config_size;
+    uint32_t num_pages_for_config;
+};
+
+
+
 void init_m25p16(void);
 static uint8_t get_status(void);
 void read_config(uint8_t *data, uint32_t len, uint8_t addr_start);
