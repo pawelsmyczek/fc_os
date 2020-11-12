@@ -35,7 +35,8 @@ static uint8_t BMP180_ReadReg(uint8_t reg) {
 }
 
 
-BMP_180::BMP_180() noexcept
+BMP_180::BMP_180(I2C* i2c_) noexcept
+: i2c(i2c_)
 {
     next_update_ms = millis();
     new_data_available = false;
@@ -49,15 +50,26 @@ BMP_180::~BMP_180() noexcept
     return;
 }
 
+void BMP_180::write_reg(uint8_t reg, uint8_t value) {
+    write_data_async(&BMP180,BMP180_ADDR_WRITE,reg, &value, NULL, true);
+}
+
+uint8_t BMP_180::reaad_reg(uint8_t reg) {
+    uint8_t value;
+    read_data(&BMP180, BMP180_ADDR_READ, reg, &value, 1);
+    return value;
+}
+
+
 BMP180_RESULT BMP_180::check(void)
 {
     uint8_t value;
-    value = BMP180_ReadReg(BMP180_CHIP_ID_REG);
+    value = reaad_reg(BMP180_CHIP_ID_REG);
     return (value == 0x55) ? BMP180_SUCCESS : BMP180_ERROR;
 }
 
 void BMP_180::reset() {
-    BMP180_WriteReg(BMP180_SOFT_RESET_REG,0xb6); // Do software reset
+    write_reg(BMP180_SOFT_RESET_REG,0xb6); // Do software reset
 }
 
 
@@ -65,7 +77,7 @@ void BMP_180::read_calibration(void)
 {
     uint8_t buffer[BMP180_PROM_DATA_LEN];
 
-    read_data(&BMP180, BMP180_ADDR_READ, BMP180_PROM_START_ADDR, buffer, BMP180_PROM_DATA_LEN);
+    i2c->read_data(BMP180_ADDR_READ, BMP180_PROM_START_ADDR, buffer, BMP180_PROM_DATA_LEN);
     bmp_calibration.AC1 = (buffer[0] << 8) | buffer[1];
     bmp_calibration.AC2 = (buffer[2] << 8) | buffer[3];
     bmp_calibration.AC3 = (buffer[4] << 8) | buffer[5];
@@ -87,7 +99,7 @@ void BMP_180::temperature_calculate(void)
     bmp_calibration.B5  = (((int32_t)uncompensated_temp - (int32_t)bmp_calibration.AC6) * (int32_t)bmp_calibration.AC5) >> 15;
     bmp_calibration.B5 += ((int32_t)bmp_calibration.MC << 11) / (bmp_calibration.B5 + bmp_calibration.MD);
 
-    bmp_data.temperature_read = (bmp_calibration.B5 + 8) >> 4;
+    temperature_read = (bmp_calibration.B5 + 8) >> 4;
 }
 void BMP_180::pressure_calculate(void)
 {
@@ -98,32 +110,32 @@ void BMP_180::pressure_calculate(void)
     uint32_t uncompensated_press = 0;
 
     /*PRESSURE CALC*/
-    uncompensated_press = ((bmp_data.pressure_buffer[0] << 16) | (bmp_data.pressure_buffer[1] << 8) |
-                           bmp_data.pressure_buffer[0]) >> (8 - (uint8_t)bmp_data.mode);
+    uncompensated_press = ((pressure_buffer[0] << 16) | (pressure_buffer[1] << 8) |
+                           pressure_buffer[0]) >> (8 - (uint8_t)mode);
     B6 = bmp_calibration.B5 - 4000;
     X3 = ((bmp_calibration.B2 * ((B6 * B6) >> 12)) >> 11) + ((bmp_calibration.AC2 * B6) >> 11);
-    B3 = (((((int32_t)bmp_calibration.AC1) * 4 + X3) << (uint8_t)bmp_data.mode) + 2) >> 2;
+    B3 = (((((int32_t)bmp_calibration.AC1) * 4 + X3) << (uint8_t)mode) + 2) >> 2;
     X3 = (((bmp_calibration.AC3 * B6) >> 13) + ((bmp_calibration.B1 * ((B6 * B6) >> 12)) >> 16) + 2) >> 2;
     B4 = (bmp_calibration.AC4 * (uint32_t)(X3 + 32768)) >> 15;
     B7 = ((uint32_t)uncompensated_press - B3) * (50000 >> (uint8_t)bmp_data.mode);
     if (B7 < 0x80000000) p = (B7 << 1) / B4; else p = (B7 / B4) << 1;
     p += ((((p >> 8) * (p >> 8) * BMP180_PARAM_MG) >> 16) + ((BMP180_PARAM_MH * p) >> 16) + BMP180_PARAM_MI) >> 4;
-    bmp_data.pressure_read = p;
+    pressure_read = p;
     new_sample_index = current_sample_index + 1;
     if (new_sample_index == PRESS_SAMPLE_COUNT)
         new_sample_index = 0;
-    bmp_data.pressure_average_buffer[current_sample_index] = bmp_data.pressure_read;
-    bmp_data.pressure_total += bmp_data.pressure_average_buffer[current_sample_index];
-    bmp_data.pressure_total -= bmp_data.pressure_average_buffer[new_sample_index];
+    pressure_average_buffer[current_sample_index] = pressure_read;
+    pressure_total += pressure_average_buffer[current_sample_index];
+    pressure_total -= pressure_average_buffer[new_sample_index];
     current_sample_index = new_sample_index;
-    bmp_data.pressure_average = (float)bmp_data.pressure_total / PRESS_SAMPLE_COUNT;
-    bmp_data.pressure_average_slow = bmp_data.pressure_average_slow * 0.98f + bmp_data.pressure_average * 0.02f;
+    pressure_average = (float)pressure_total / PRESS_SAMPLE_COUNT;
+    pressure_average_slow = pressure_average_slow * 0.98f + pressure_average * 0.02f;
 }
 void BMP_180::altitude_calculate(void)
 {
-    bmp_data.altitude_current = 44330.0f*(1.0f-powf(((float)bmp_data.pressure_average_slow) / 101325.0f, 1.0f / 5.255f));
-    low_pass_filter(&bmp_data.low_pass_filtered, bmp_data.altitude_current, (1.0f / bmp_data.dt) * 0.3f);
-    bmp_data.delta_altitude = bmp_data.low_pass_filtered < bmp_data.ground_altitude? 0.0f: bmp_data.low_pass_filtered - bmp_data.ground_altitude;
+    altitude_current = 44330.0f*(1.0f-powf(((float)pressure_average_slow) / 101325.0f, 1.0f / 5.255f));
+    low_pass_filter(&bmp_data.low_pass_filtered, altitude_current, (1.0f / dt) * 0.3f);
+    bmp_data.delta_altitude = low_pass_filtered < ground_altitude? 0.0f: low_pass_filtered - ground_altitude;
 }
 
 
@@ -161,31 +173,30 @@ void BMP_180::bmp180_update(void)
         pressure_calculate();
     }
     altitude_calculate();
-    // velocity_calculate();
     temperature_trigger++;
 }
 
 bool BMP_180::read_temp_start(){
     uint8_t value = BMP180_T_MEASURE;
-    return write_data_async(&BMP180,BMP180_ADDR_WRITE, BMP180_CTRL_MEAS_REG, &value, &read_temp_start_callback, true) > 0;
+    return i2c->write_data_async(BMP180_ADDR_WRITE, BMP180_CTRL_MEAS_REG, &value, &read_temp_start_callback, true) > 0;
 }
 
 bool BMP_180::read_temp_perform(){
-    return read_data_async(&BMP180, BMP180_ADDR_READ, BMP180_ADC_OUT_MSB_REG,2, bmp_data.temperature_buffer, &read_temp_perform_callback, true) > 0;
+    return i2c->read_data_async(BMP180_ADDR_READ, BMP180_ADC_OUT_MSB_REG,2, bmp_data.temperature_buffer, &read_temp_perform_callback, true) > 0;
 }
 
 bool BMP_180::read_press_start(){
     uint8_t value = BMP_OSS[bmp_data.mode].OSS_cmd;
-    return write_data_async(&BMP180,BMP180_ADDR_WRITE, BMP180_CTRL_MEAS_REG, &value, &read_press_start_callback, true) > 0;
+    return i2c->write_data_async(BMP180_ADDR_WRITE, BMP180_CTRL_MEAS_REG, &value, &read_press_start_callback, true) > 0;
 }
 
 bool BMP_180::read_press_perform(){
-    return read_data_async(&BMP180, BMP180_ADDR_READ, BMP180_ADC_OUT_MSB_REG,3, bmp_data.pressure_buffer, &read_press_perform_callback, true) > 0;
+    return i2c->read_data_async(BMP180_ADDR_READ, BMP180_ADC_OUT_MSB_REG,3, bmp_data.pressure_buffer, &read_press_perform_callback, true) > 0;
 }
 
 
 void BMP_180::low_pass_filter(float* output, float input, float cut_off_freq){
-    float e_pow = 1.f - expf( -1.0f * bmp_data.dt * 2.0f * M_PI * cut_off_freq);
+    float e_pow = 1.f - expf( -1.0f * dt * 2.0f * M_PI * cut_off_freq);
     *output += (input - *output) * e_pow;
 }
 

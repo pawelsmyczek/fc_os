@@ -245,6 +245,8 @@ usbd_def.h
 ../Inc/bmp180.h
 cstdint
 -
+iic.h
+../Inc/iic.h
 
 ../Inc/board.h
 setup.h

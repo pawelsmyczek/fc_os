@@ -30,31 +30,6 @@ typedef struct
     float angle_yaw[  1024];
 } flight_data_t;
 
-
-
-#define USB_BUFFER_LEN  255
-
-/* Private define ------------------------------------------------------------*/
-
-/* Private macro -------------------------------------------------------------*/
-
-/* Private variables ---------------------------------------------------------*/
-
-
-
-
-/* Private function prototypes -----------------------------------------------*/
-
-
-/**
-  * @brief  Main program.
-  * @param  None
-  * @retval None
-  */
-
-
-/* Private functions ---------------------------------------------------------*/
-
 int main(void)
 {
 

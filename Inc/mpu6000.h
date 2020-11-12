@@ -112,7 +112,7 @@ class MPU6000_
     MPU6000_(const MPU6000_&) = delete;
     const MPU6000_& operator=(const MPU6000_&) = delete;
 public:
-    MPU6000_() noexcept;
+    MPU6000_(SPI* spi) noexcept;
     ~MPU6000_() noexcept;
     bool init_mpu(void);
     bool detect_mpu(void);
@@ -126,7 +126,7 @@ public:
     void positions_estimate(void);
 
 private:
-
+    SPI* spi;
     float accelRTError[3];
     float gyroRTError[3];
     float accelCTBias[3];

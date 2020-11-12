@@ -7,6 +7,7 @@
 
 
 #include <cstdint>
+#include "iic.h"
 
 #define BMP180_I2C_PORT                 I2C2 // I2C port where the BMP180 connected
 
@@ -91,11 +92,14 @@ class BMP_180
     BMP_180(const BMP_180&) = delete;
     const BMP_180& operator=(const BMP_180&) = delete;
 public:
-    BMP_180() noexcept;
+    BMP_180(I2C* i2c) noexcept;
 
     ~BMP_180() noexcept;
 
     void reset();
+    void write_reg(uint8_t reg, uint8_t value);
+    uint8_t reaad_reg(uint8_t reg);
+
 
     BMP180_RESULT check(void);
     void read_calibration(void);
@@ -112,6 +116,7 @@ public:
     bool read_press_perform();
     void low_pass_filter(float* output, float input, float cut_off_freq);
 private:
+    I2C* i2c;
     uint8_t temperature_buffer[2]{};
     uint8_t pressure_buffer[3]{};
     int32_t pressure_average_buffer[PRESS_SAMPLE_COUNT]{};

@@ -53,91 +53,92 @@ const uint16_t SAMPLES_NUM = 20000;
 float oneG = 9.81f;
 uint8_t raw_mpu[15] = {MPU6000_ACCEL_XOUT_H | 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-MPU6000_::MPU6000_() noexcept
+MPU6000_::MPU6000_(SPI* _spi) noexcept
+: spi(_spi)
 {
-    set_spi_divisor(&MPU6000, 2);                         // 21 MHz SPI clock (within 20 +/- 10%)
+    spi->set_spi_divisor(2);                         // 21 MHz SPI clock (within 20 +/- 10%)
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_PWR_MGMT_1);          // Device Reset
-    spi_transfer(&MPU6000, BIT_H_RESET);
-    spi_disable(&MPU6000_CS);
-
-    delay_ms(150);
-
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, SIGNAL_PATH_RESET);
-    spi_transfer(&MPU6000, 0x07); //
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_PWR_MGMT_1);          // Device Reset
+    spi->spi_transfer(BIT_H_RESET);
+    spi->spi_disable();
 
     delay_ms(150);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_PWR_MGMT_1);          // Clock Source PPL with Z axis gyro reference
-    spi_transfer(&MPU6000, MPU_CLK_SEL_PLLGYROZ);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(SIGNAL_PATH_RESET);
+    spi->spi_transfer(0x07); //
+    spi->spi_disable();
+
+    delay_ms(150);
+
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_PWR_MGMT_1);          // Clock Source PPL with Z axis gyro reference
+    spi->spi_transfer(MPU_CLK_SEL_PLLGYROZ);
+    spi->spi_disable();
 
     delay_ms(1);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_USER_CTRL);           // spi_disable(&MPU6000_CS) Primary I2C Interface
-    spi_transfer(&MPU6000, BIT_I2C_IF_DIS);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_USER_CTRL);           // spi_disable(&MPU6000_CS) Primary I2C Interface
+    spi->spi_transfer(BIT_I2C_IF_DIS);
+    spi->spi_disable();
 
     delay_ms(1);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_PWR_MGMT_2);
-    spi_transfer(&MPU6000, 0x00);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_PWR_MGMT_2);
+    spi->spi_transfer(0x00);
+    spi->spi_disable();
 
     delay_ms(1);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_SMPLRT_DIV);          // Accel Sample Rate 1000 Hz, Gyro Sample Rate 8000 Hz
-    spi_transfer(&MPU6000, 0x00);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_SMPLRT_DIV);          // Accel Sample Rate 1000 Hz, Gyro Sample Rate 8000 Hz
+    spi->spi_transfer(0x00);
+    spi->spi_disable();
 
     delay_ms(1);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_CONFIG);              // Accel and Gyro DLPF Setting
-    spi_transfer(&MPU6000, BITS_DLPF_CFG_10HZ);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_CONFIG);              // Accel and Gyro DLPF Setting
+    spi->spi_transfer( BITS_DLPF_CFG_10HZ);
+    spi->spi_disable();
 
     delay_ms(1);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_ACCEL_CONFIG);        // Accel +/- 4 G Full Scale
-    spi_transfer(&MPU6000, BITS_FS_4G);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_ACCEL_CONFIG);        // Accel +/- 4 G Full Scale
+    spi->spi_transfer(BITS_FS_4G);
+    spi->spi_disable();
 
     delay_ms(1);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_GYRO_CONFIG);
-    spi_transfer(&MPU6000, BITS_FS_500DPS);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_GYRO_CONFIG);
+    spi->spi_transfer( BITS_FS_500DPS);
+    spi->spi_disable();
 
     delay_ms(1);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_INT_PIN_CFG);
-    spi_transfer(&MPU6000, BIT_INT_ANYRD_2CLEAR);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_INT_PIN_CFG);
+    spi->spi_transfer(BIT_INT_ANYRD_2CLEAR);
+    spi->spi_disable();
 
     delay_ms(1);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_INT_ENABLE);         // Gyro spi_enable(&MPU6000_CS) interrupts
-    spi_transfer(&MPU6000, BIT_RAW_RDY_EN);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_INT_ENABLE);         // Gyro spi_enable(&MPU6000_CS) interrupts
+    spi->spi_transfer(BIT_RAW_RDY_EN);
+    spi->spi_disable();
 
     delay_ms(1);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_WHOAMI | 0x80);
-    response.value = spi_transfer(&MPU6000, 0x00);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_WHOAMI | 0x80);
+    response.value = spi->spi_transfer(0x00);
+    spi->spi_disable();
 
     delay_ms(100);
 
@@ -178,18 +179,18 @@ MPU6000_::~MPU6000_() noexcept
 }
 bool MPU6000_::init_mpu(void)
 {
-
+    return false;
 }
 bool MPU6000_::detect_mpu(void)
 {
     unsigned int response_mpu = 0;
 
-    set_spi_divisor(&MPU6000, 2);
+    spi->set_spi_divisor( 2);
 
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_PWR_MGMT_1);          // Device Reset
-    spi_transfer(&MPU6000, BIT_H_RESET);
-    spi_disable(&MPU6000_CS);
+    spi->spi_enable();
+    spi->spi_transfer( MPU6000_PWR_MGMT_1);          // Device Reset
+    spi->spi_transfer( BIT_H_RESET);
+    spi->spi_disable();
 
     uint8_t attemptsRemaining = 5;
     do {
@@ -204,25 +205,25 @@ bool MPU6000_::detect_mpu(void)
 }
 void MPU6000_::read_mpu(void)
 {
-    spi_enable(&MPU6000_CS);
-    spi_transfer(&MPU6000, MPU6000_ACCEL_XOUT_H | 0x80);
-    raw_accel[ROLL   ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
-    raw_accel[ROLL   ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
-    raw_accel[PITCH  ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
-    raw_accel[PITCH  ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
-    raw_accel[YAW    ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
-    raw_accel[YAW    ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
+    spi->spi_enable();
+    spi->spi_transfer(MPU6000_ACCEL_XOUT_H | 0x80);
+    raw_accel[ROLL   ].bytes[1]            = spi->spi_transfer(0x00);
+    raw_accel[ROLL   ].bytes[0]            = spi->spi_transfer(0x00);
+    raw_accel[PITCH  ].bytes[1]            = spi->spi_transfer(0x00);
+    raw_accel[PITCH  ].bytes[0]            = spi->spi_transfer(0x00);
+    raw_accel[YAW    ].bytes[1]            = spi->spi_transfer(0x00);
+    raw_accel[YAW    ].bytes[0]            = spi->spi_transfer(0x00);
 
-    rawMPU6000Temperature.bytes[1]         = spi_transfer(&MPU6000, 0x00);
-    rawMPU6000Temperature.bytes[0]         = spi_transfer(&MPU6000, 0x00);
+    rawMPU6000Temperature.bytes[1]         = spi->spi_transfer(0x00);
+    rawMPU6000Temperature.bytes[0]         = spi->spi_transfer(0x00);
 
-    raw_gyro[ROLL    ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
-    raw_gyro[ROLL    ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
-    raw_gyro[PITCH   ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
-    raw_gyro[PITCH   ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
-    raw_gyro[YAW     ].bytes[1]            = spi_transfer(&MPU6000, 0x00);
-    raw_gyro[YAW     ].bytes[0]            = spi_transfer(&MPU6000, 0x00);
-    spi_disable(&MPU6000_CS);
+    raw_gyro[ROLL    ].bytes[1]            = spi->spi_transfer(0x00);
+    raw_gyro[ROLL    ].bytes[0]            = spi->spi_transfer(0x00);
+    raw_gyro[PITCH   ].bytes[1]            = spi->spi_transfer(0x00);
+    raw_gyro[PITCH   ].bytes[0]            = spi->spi_transfer(0x00);
+    raw_gyro[YAW     ].bytes[1]            = spi->spi_transfer(0x00);
+    raw_gyro[YAW     ].bytes[0]            = spi->spi_transfer(0x00);
+    spi->spi_disable();
 
 }
 
@@ -241,7 +242,7 @@ void MPU6000_::read_mpu_dma(void)
 {
     mpu_timestamp = micros();
     raw_mpu[0] = MPU6000_ACCEL_XOUT_H | 0x80;
-    dma_transfer(&MPU6000, raw_mpu, raw_mpu, 15, &data_transfer_callback_mpu);
+    spi->dma_transfer(raw_mpu, raw_mpu, 15, &data_transfer_callback_mpu);
 }
 void MPU6000_::calibrate_mpu(void)
 {

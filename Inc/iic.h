@@ -33,13 +33,69 @@
 #define        GEN_CALL 0x10 << 16
 #define        SMBDE_FAULT 0x20 << 16
 #define        DUALF   0x40 << 16
-
 typedef enum{
     IDLE,
     READING,
     WRITING
 }current_status_t;
 
+
+class I2C
+{
+    I2C(const I2C&) = delete;
+    const I2C& operator=(const I2C&) = delete;
+public:
+    I2C(I2C_Dev_* devv) noexcept;
+    ~I2C() noexcept;
+    void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
+                  uint16_t            SCL_Pin,
+                  uint16_t            SDA_Pin,
+                  DMA_InitTypeDef*    dmaInitTypeDef,
+                  uint32_t            i2cClockSpeed,
+                  IRQn_Type           i2cEV_IRQn,
+                  IRQn_Type           i2cER_IRQn,
+                  DMA_Stream_TypeDef* dmaStream,
+                  uint32_t            dmaChannel,
+                  IRQn_Type           dmaIRQn,
+                  uint32_t            dmaTCIF,
+                  bool                is_initialised);
+    void unstick();
+    bool check_busy();
+    bool is_initialised();
+    void handle_hardware_failure();
+    int8_t read_data_async(uint8_t _addr,
+                           uint8_t _reg,
+                           uint8_t number_of_bytes,
+                           uint8_t *data,
+                           void (*callback)(uint8_t),
+                           bool is_blocking);
+    int8_t read_data(uint8_t addr, uint8_t reg, uint8_t* data, uint8_t length);
+    int8_t write_data_async(uint8_t addr,
+                            uint8_t reg,
+                            uint8_t* data,
+                            void (*callback)(uint8_t),
+                            bool is_blocking);
+    int8_t write_data(uint8_t addr,
+                      uint8_t reg,
+                      uint8_t* data);
+
+    void handle_error();
+    void handle_event();
+
+private:
+    I2C_Dev_*           dev;
+    uint8_t             return_code;
+    void                (*callback)(uint8_t);
+    uint8_t             address;
+    uint8_t             length;
+    uint8_t             reg;
+    uint8_t*            data;
+    bool                subaddress_sent;
+    bool                done;
+    bool                initialised;
+    uint8_t             current_status;
+    uint64_t last_event;
+};
 
 extern uint64_t last_event;
 
