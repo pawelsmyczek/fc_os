@@ -7,7 +7,7 @@
 
 
 #include "spi.h"
-#include "setup.h"
+//#include "setup.h"
 #include <stdbool.h>
 
 

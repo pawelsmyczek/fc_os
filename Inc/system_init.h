@@ -5,8 +5,8 @@
 #ifndef FC_SOFT_SYSTEM_INIT_H
 #define FC_SOFT_SYSTEM_INIT_H
 
-#include "board.h"
 // #include "setup.h"
+#include "timer.h"
 #include "mpu6000.h"
 #include "m25p16.h"
 #include "bmp180.h"
@@ -15,6 +15,7 @@
 #include "iic.h"
 #include "uart.h"
 #include "hcsr04.h"
+#include "board.h"
 
 #ifdef __cplusplus
 extern "C"

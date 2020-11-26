@@ -210,7 +210,7 @@ static uint16_t VCP_DataTx(const uint8_t* Buf, uint32_t Len)
         could just check for: USB_CDC_ZLP, but better to be safe
         and wait for any existing transmission to complete.
     */
-    volatile uint32_t free = CDC_Send_FreeBytes();
+//    volatile uint32_t free = CDC_Send_FreeBytes();
 //    while (USB_Tx_State != 0);
 
     for (uint32_t i = 0; i < Len; i++) {

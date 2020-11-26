@@ -1,11 +1,14 @@
 //
-// Created by pablito on 22.03.2020.
+// Created by pablito on 26.11.2020.
 //
 
 #ifndef FC_SOFT_SETUP_H
 #define FC_SOFT_SETUP_H
 
-
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 
 #include <ctype.h>
 #include <stdarg.h>
@@ -14,16 +17,8 @@
 #include <string.h>
 #include <inttypes.h>
 #include <math.h>
-
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 #include "stm32f4xx.h"
 #include "stm32f4xx_conf.h"
-#ifdef __cplusplus
-}
-#endif
 
 
 #define DWT_CTRL    (*(volatile uint32_t *)0xE0001000)
@@ -38,24 +33,7 @@ extern "C"
 #define UART_RX_BUFFER_SIZE 512
 #define UART_TX_BUFFER_SIZE 512
 
-// INERNAL TYPEDEFS
 
-
-
-extern volatile uint32_t sysTickCycleCounter;
-extern volatile uint32_t usTicks;
-
-// USER DEFINED STRUCTS
-
-
-extern DMA_InitTypeDef             dmaInitStructure1;
-extern DMA_InitTypeDef             dmaInitStructure2;
-extern DMA_InitTypeDef             dmaInitStructure3;
-extern DMA_InitTypeDef             dmaInitStructure4;
-extern RCC_ClocksTypeDef           RCC_Clocks;
-extern GPIO_InitTypeDef            GPIO_InitStructure;
-extern TIM_TimeBaseInitTypeDef     TIM_TimeBaseInitStructure;
-extern TIM_OCInitTypeDef           TIM_OCInitStructure;
 
 typedef struct
 {
@@ -87,7 +65,6 @@ typedef struct
     CS_Pin*             ChipSelect;
     uint8_t             IRQChannel;
     uint32_t            DMA_Channel;
-    DMA_InitTypeDef*    DMA_InitStructure;
     DMA_Stream_TypeDef* TX_DMA_Stream;
     DMA_Stream_TypeDef* RX_DMA_Stream;
     uint16_t            SPI_CPol;
@@ -128,7 +105,6 @@ typedef struct
     I2C_TypeDef*        I2C;
     uint16_t            SCL_Pin;
     uint16_t            SDA_Pin;
-    DMA_InitTypeDef*    DMA_InitStructure;
     uint32_t            I2C_ClockSpeed;
     IRQn_Type           I2C_EV_IRQn;
     IRQn_Type           I2C_ER_IRQn;
@@ -166,7 +142,8 @@ typedef struct
 } UART_dev;
 
 
-typedef struct{
+typedef struct
+{
     USART_TypeDef*      UART;
     GPIO_TypeDef*       GPIO_RX;
     GPIO_TypeDef*       GPIO_TX;
@@ -184,15 +161,46 @@ typedef struct{
     uint32_t            DMA_Tx_IT_Bit;
 } UART_dev_;
 
+typedef struct
+{
+    GPIO_TypeDef*   GPIO;
+	uint16_t        GPIO_Pin;
+	uint8_t         GPIO_PinSource;
+	TIM_TypeDef*    TIM;
+	uint8_t         TIM_Channel;
+	uint8_t         GIPO_AF_TIM;
+	IRQn_Type       TIM_IRQn;
+	uint16_t        TIM_IT_CC;
+} Timer_dev;
+
+
+
+// INERNAL TYPEDEFS
+
+
+
+extern volatile uint32_t usTicks;
+
+// USER DEFINED STRUCTS
 
 
 
 
-extern void SysTick_Handler(void);
-extern volatile uint32_t millis(void);
-extern volatile uint64_t micros(void);
-extern void delay_us(uint32_t us);
-extern void delay_ms(uint32_t ms);
-extern void Fail_Handler(void);
+void SysTick_Handler(void);
+
+uint32_t millis(void);
+
+uint64_t micros(void);
+
+void delay_us(uint32_t us);
+
+void delay_ms(uint32_t ms);
+
+void Fail_Handler(void);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif //FC_SOFT_SETUP_H

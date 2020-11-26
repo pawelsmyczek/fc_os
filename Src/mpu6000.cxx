@@ -162,11 +162,11 @@ MPU6000_::MPU6000_(SPI* _spi) noexcept
     ///////////////////////////////////
 
     // delay_ms(100);
-    for(uint8_t i = 0; i < 3; i++){
-        init_kalman_struct(&gyro_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
-        init_kalman_struct(&accel_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
-
-    }
+//    for(uint8_t i = 0; i < 3; i++){
+//        init_kalman_struct(&gyro_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
+//        init_kalman_struct(&accel_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
+//
+//    }
 
     calibrate_mpu();
 
@@ -183,8 +183,6 @@ bool MPU6000_::init_mpu(void)
 }
 bool MPU6000_::detect_mpu(void)
 {
-    unsigned int response_mpu = 0;
-
     spi->set_spi_divisor( 2);
 
     spi->spi_enable();
@@ -347,9 +345,8 @@ void MPU6000_::positions_estimate(void)
 
 
 
-bool detect_mpu(void){
-    unsigned int response_mpu = 0;
-
+bool detect_mpu(void)
+{
     set_spi_divisor(&MPU6000, 2);
 
     spi_enable(&MPU6000_CS);
@@ -477,11 +474,11 @@ bool init_mpu(void){
     ///////////////////////////////////
 
     // delay_ms(100);
-    for(uint8_t i = 0; i < 3; i++){
-        init_kalman_struct(&gyro_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
-        init_kalman_struct(&accel_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
-
-    }
+//    for(uint8_t i = 0; i < 3; i++){
+//        init_kalman_struct(&gyro_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
+//        init_kalman_struct(&accel_estimate[i], 0.8f, 1.0f, 0.8f, 0.0f, 1.7f);
+//
+//    }
 
     calibrate_mpu();
 
@@ -535,7 +532,7 @@ void calibrate_mpu(void) {
 
 
 
-    for (uint16_t samples = 0; samples < SAMPLES_NUM; samples++) {
+    for (uint16_t samples = 0; samples < 10; ++samples) {
         compute_mpu_tc_bias();
         accelRTError[ROLL ] += ((float)raw_accel[ROLL ].value / 8192.0f) - accelCTBias[ROLL ];
         accelRTError[PITCH] += ((float)raw_accel[PITCH].value / 8192.0f) - accelCTBias[PITCH];
@@ -618,9 +615,7 @@ void compute_angles(void){
 
 
 void positions_estimate(void){
-    uint64_t ms_prev = mpu_timestamp;
     mpu_timestamp = micros();
-    float seconds_diff = (float)(mpu_timestamp - ms_prev) / 1000.0f;  // TODO should be 1us, but is 10 us instead
     velocity[ROLL ] = velocity_previous[ROLL ] + previous_accelSum[ROLL ] + (accel_sum[ROLL ] - previous_accelSum[ROLL ]);
     position[ROLL ] = position_previous[ROLL ] + velocity_previous[ROLL ] + (velocity[ROLL ] - velocity_previous[ROLL ]);
     velocity[PITCH] = velocity_previous[PITCH] + previous_accelSum[PITCH] + (accel_sum[PITCH] - previous_accelSum[PITCH]);

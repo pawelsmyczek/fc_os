@@ -11,20 +11,13 @@ uint8_t*            spi2_in_buffer;
 uint8_t*            spi2_out_buffer;
 uint32_t dma_buffer_size;
 
+SPI* spi1 = nullptr;
+SPI* spi2 = nullptr;
+
 SPI::SPI(SPI_Dev_* dev_) noexcept
 : dev(dev_)
 {
     SPI_InitTypeDef             SPI_InitStruct;
-
-//    if(SPI == SPI1) {
-//        dev->in_buffer = spi1_in_buffer;
-//        dev->out_buffer = spi1_out_buffer;
-//    }
-//    if(SPI == SPI2) {
-//        dev->in_buffer = spi2_in_buffer;
-//        dev->out_buffer = spi2_out_buffer;
-//    }
-
     chip_select_init(dev->ChipSelect->GPIO, dev->ChipSelect->PinNumber);
 
     SPI_I2S_DeInit(dev->SPI);
@@ -46,19 +39,19 @@ SPI::SPI(SPI_Dev_* dev_) noexcept
 
     *dummyread = SPI_I2S_ReceiveData(dev->SPI);
 
-    dev->DMA_InitStructure->DMA_FIFOMode = DMA_FIFOMode_Disable;
-    dev->DMA_InitStructure->DMA_FIFOThreshold = DMA_FIFOThreshold_1QuarterFull;
-    dev->DMA_InitStructure->DMA_MemoryBurst = DMA_MemoryBurst_Single;
-    dev->DMA_InitStructure->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-    dev->DMA_InitStructure->DMA_MemoryInc = DMA_MemoryInc_Enable;
-    dev->DMA_InitStructure->DMA_Mode = DMA_Mode_Normal;
-    dev->DMA_InitStructure->DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-    dev->DMA_InitStructure->DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-    dev->DMA_InitStructure->DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-    dev->DMA_InitStructure->DMA_Channel = dev->DMA_Channel;
-    dev->DMA_InitStructure->DMA_PeripheralBaseAddr = reinterpret_cast<uint32_t>(&(dev->SPI->DR));
-    dev->DMA_InitStructure->DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-    dev->DMA_InitStructure->DMA_Priority = DMA_Priority_High;
+    dma.DMA_FIFOMode = DMA_FIFOMode_Disable;
+    dma.DMA_FIFOThreshold = DMA_FIFOThreshold_1QuarterFull;
+    dma.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+    dma.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    dma.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    dma.DMA_Mode = DMA_Mode_Normal;
+    dma.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+    dma.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    dma.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    dma.DMA_Channel = dev->DMA_Channel;
+    dma.DMA_PeripheralBaseAddr = reinterpret_cast<uint32_t>(&(dev->SPI->DR));
+    dma.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    dma.DMA_Priority = DMA_Priority_High;
 
     // Configure the Appropriate Interrupt Routine
     NVIC_InitTypeDef NVIC_InitStruct;
@@ -85,12 +78,12 @@ void SPI::chip_select_init(GPIO_TypeDef* gpio, uint16_t pinNumber){
     dev->ChipSelect->PinNumber  = pinNumber;
 }
 
-int SPI::spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, uint16_t clockPolarity, DMA_InitTypeDef* dmaInitStructure, CS_Pin* chipSelect,
-             uint8_t irqChannel, uint32_t dmaChannel, DMA_Stream_TypeDef *txDmaStream,
-             DMA_Stream_TypeDef *rxDmaStream, uint32_t dmaTxFlag, uint32_t dmaRxFlag, uint8_t priority){
-
-    return *dummyread;
-}
+//int SPI::spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, uint16_t clockPolarity, DMA_InitTypeDef* dmaInitStructure, CS_Pin* chipSelect,
+//             uint8_t irqChannel, uint32_t dmaChannel, DMA_Stream_TypeDef *txDmaStream,
+//             DMA_Stream_TypeDef *rxDmaStream, uint32_t dmaTxFlag, uint32_t dmaRxFlag, uint8_t priority){
+//
+//    return *dummyread;
+//}
 
 
 
@@ -128,17 +121,17 @@ void SPI::spi_perform_transfer(){
     DMA_DeInit(dev->TX_DMA_Stream); // SPI1_TX_DMA_STREAM
     DMA_DeInit(dev->RX_DMA_Stream); // SPI1_RX_DMA_STREAM
 
-    dev->DMA_InitStructure->DMA_BufferSize = dma_buffer_size;
+    dma.DMA_BufferSize = dma_buffer_size;
 
     // Configure Tx DMA
-    dev->DMA_InitStructure->DMA_DIR = DMA_DIR_MemoryToPeripheral;
-    dev->DMA_InitStructure->DMA_Memory0BaseAddr = reinterpret_cast<uint32_t>(out_buffer);
-    DMA_Init(dev->TX_DMA_Stream, dev->DMA_InitStructure);
+    dma.DMA_DIR = DMA_DIR_MemoryToPeripheral;
+    dma.DMA_Memory0BaseAddr = reinterpret_cast<uint32_t>(out_buffer);
+    DMA_Init(dev->TX_DMA_Stream, &dma);
 
     // Configure Rx DMA
-    dev->DMA_InitStructure->DMA_DIR = DMA_DIR_PeripheralToMemory;
-    dev->DMA_InitStructure->DMA_Memory0BaseAddr = reinterpret_cast<uint32_t>(in_buffer);
-    DMA_Init(dev->RX_DMA_Stream, dev->DMA_InitStructure);
+    dma.DMA_DIR = DMA_DIR_PeripheralToMemory;
+    dma.DMA_Memory0BaseAddr = reinterpret_cast<uint32_t>(in_buffer);
+    DMA_Init(dev->RX_DMA_Stream, &dma);
     //  Configure the Interrupt
 
     DMA_ITConfig(dev->TX_DMA_Stream, DMA_IT_TC, ENABLE);
@@ -228,16 +221,17 @@ void chip_select_init(CS_Pin* pin, GPIO_TypeDef* gpio, uint16_t pinNumber){
     pin->PinNumber  = pinNumber;
 }
 
-int spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, uint16_t clockPolarity, DMA_InitTypeDef* dmaInitStructure, CS_Pin* chipSelect,
+int spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, uint16_t clockPolarity, CS_Pin* chipSelect,
         uint8_t irqChannel, uint32_t dmaChannel, DMA_Stream_TypeDef *txDmaStream,
         DMA_Stream_TypeDef *rxDmaStream, uint32_t dmaTxFlag, uint32_t dmaRxFlag, uint8_t priority){
 
     SPI_InitTypeDef             SPI_InitStruct;
 
+    DMA_InitTypeDef             DmaInitStructure;
     dev->SPI                  = SPI;
     dev->ChipSelect           = chipSelect;
     dev->IRQChannel           = irqChannel;
-    dev->DMA_InitStructure    = dmaInitStructure;
+    dev->DMA_InitStructure    = &DmaInitStructure;
     dev->DMA_Channel          = dmaChannel;
     dev->TX_DMA_Stream        = txDmaStream;
     dev->RX_DMA_Stream        = rxDmaStream;

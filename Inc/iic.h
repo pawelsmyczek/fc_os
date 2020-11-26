@@ -47,18 +47,6 @@ class I2C
 public:
     I2C(I2C_Dev_* devv) noexcept;
     ~I2C() noexcept;
-    void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
-                  uint16_t            SCL_Pin,
-                  uint16_t            SDA_Pin,
-                  DMA_InitTypeDef*    dmaInitTypeDef,
-                  uint32_t            i2cClockSpeed,
-                  IRQn_Type           i2cEV_IRQn,
-                  IRQn_Type           i2cER_IRQn,
-                  DMA_Stream_TypeDef* dmaStream,
-                  uint32_t            dmaChannel,
-                  IRQn_Type           dmaIRQn,
-                  uint32_t            dmaTCIF,
-                  bool                is_initialised);
     void unstick();
     bool check_busy();
     bool is_initialised();
@@ -84,6 +72,7 @@ public:
 
 private:
     I2C_Dev_*           dev;
+    DMA_InitTypeDef     dma;
     uint8_t             return_code;
     void                (*callback)(uint8_t);
     uint8_t             address;
@@ -102,7 +91,6 @@ extern uint64_t last_event;
 void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
               uint16_t            SCL_Pin,
               uint16_t            SDA_Pin,
-              DMA_InitTypeDef*    dmaInitTypeDef,
               uint32_t            i2cClockSpeed,
               IRQn_Type           i2cEV_IRQn,
               IRQn_Type           i2cER_IRQn,

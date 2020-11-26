@@ -40,20 +40,18 @@ int main(void)
     uint16_t pwm_out_low = 1000;
     char serial_out[70];
     int serial_out_len;
-    int serial_in_len;
-    int bmp_calibration_time = 10000;
+    uint32_t bmp_calibration_time = 10000;
     char serial_in_buffer = '\0';
     char serial_in_buffer_mul[2] = "";
     uint16_t pwm_out_max = 1500;
     uint16_t pwm_out_min = 1018;
     uint16_t pwm_lf = 0, pwm_rf = 0, pwm_lb = 0, pwm_rb = 0;
     uint32_t test_procedure_time = 4000;
-    uint16_t height_increase_time = 100;
     uint32_t ellapsed_time = 0;
 
 
 
-    bool success_flash_read = false;
+//    bool success_flash_read = false;
 //    static config_t sample_config_file;
 //    static uint8_t sample_config_buffer[sizeof(config_t)];
     static flight_data_t flight_data_file;

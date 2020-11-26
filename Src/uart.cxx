@@ -49,20 +49,20 @@ UART::UART(UART_dev_* _dev,uint32_t _baudrate, UART_Mode _mode) noexcept
     DMA_InitTypeDef DMA_InitStructure;
 
     // Common DMA Configuration
-    DMA_InitStructure.DMA_FIFOMode = DMA_FIFOMode_Disable;
-    DMA_InitStructure.DMA_FIFOThreshold = DMA_FIFOThreshold_1QuarterFull;
-    DMA_InitStructure.DMA_MemoryBurst = DMA_MemoryBurst_Single;
-    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    dma.DMA_FIFOMode = DMA_FIFOMode_Disable;
+    dma.DMA_FIFOThreshold = DMA_FIFOThreshold_1QuarterFull;
+    dma.DMA_MemoryBurst = DMA_MemoryBurst_Single;
+    dma.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
 
-    DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-    DMA_InitStructure.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
-    DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-    DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
+    dma.DMA_MemoryInc = DMA_MemoryInc_Enable;
+    dma.DMA_PeripheralBurst = DMA_PeripheralBurst_Single;
+    dma.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
+    dma.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
 
-    DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-    DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-    DMA_InitStructure.DMA_PeripheralBaseAddr = reinterpret_cast<uint32_t>(&(dev->UART->DR));
-    DMA_InitStructure.DMA_Channel =dev->DMA_Channel;
+    dma.DMA_Priority = DMA_Priority_High;
+    dma.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
+    dma.DMA_PeripheralBaseAddr = reinterpret_cast<uint32_t>(&(dev->UART->DR));
+    dma.DMA_Channel =dev->DMA_Channel;
 
     // Configure the Tx DMA
     DMA_DeInit(dev->Tx_DMA_Stream);
@@ -135,9 +135,10 @@ uint32_t UART::uart_tx_bytes_free()
 bool UART::set_mode(uint32_t baud, UART_Mode mode)
 {
     USART_Cmd(dev->UART, DISABLE); // Disable the usart device for configuration
+    baudrate = baud;
 
     USART_InitTypeDef USART_InitStruct;
-    USART_InitStruct.USART_BaudRate = baudrate;
+    USART_InitStruct.USART_BaudRate = baud;
 
     switch (mode)
     {
@@ -526,7 +527,7 @@ uint32_t uart_tx_bytes_free(UART_dev* dev)
 bool uart_set_mode(UART_dev* dev, uint32_t baud, UART_Mode mode)
 {
     USART_Cmd(dev->UART, DISABLE); // Disable the usart device for configuration
-
+    dev->baudrate = baud;
     USART_InitTypeDef USART_InitStruct;
     USART_InitStruct.USART_BaudRate = dev->baudrate;
 

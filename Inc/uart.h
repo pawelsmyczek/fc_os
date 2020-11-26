@@ -38,8 +38,9 @@ public:
     void dma_tx_irq_callback();
 private:
     UART_dev_* dev;
-    UART_Mode mode;
+    DMA_InitTypeDef dma;
     uint32_t  baudrate;                 // the baudrate for the connection
+    UART_Mode mode;
     uint8_t   rx_buffer_[UART_RX_BUFFER_SIZE]; // the buffer for incoming data
     uint8_t   tx_buffer_[UART_TX_BUFFER_SIZE]; // the buffer for outgoing data
     uint16_t  rx_buffer_head_;

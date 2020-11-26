@@ -27,10 +27,9 @@
 
 #define SECTOR_ERASE_TIMEOUT_MILLIS  5000
 
-static uint32_t current_page;
-static uint32_t current_position;
-static uint32_t config_size;
-static uint32_t num_pages_for_config;
+//static uint32_t current_page;
+//static uint32_t current_position;
+//static uint32_t config_size;
 
 
 class M25P16_
@@ -59,7 +58,6 @@ private:
 
 
 void init_m25p16(void);
-static uint8_t get_status(void);
 void read_config(uint8_t *data, uint32_t len, uint8_t addr_start);
 bool write_config(const uint8_t *data, const uint32_t len);
 void write_page(uint8_t* data);

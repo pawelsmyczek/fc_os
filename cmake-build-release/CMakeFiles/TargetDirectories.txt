@@ -1,3 +1,0 @@
-/home/pablito/CLionProjects/fc_soft/cmake-build-release/CMakeFiles/edit_cache.dir
-/home/pablito/CLionProjects/fc_soft/cmake-build-release/CMakeFiles/rebuild_cache.dir
-/home/pablito/CLionProjects/fc_soft/cmake-build-release/CMakeFiles/fc_soft.elf.dir

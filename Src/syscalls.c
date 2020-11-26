@@ -1,3 +1,4 @@
+#include <sched.h>
 /**
 *****************************************************************************
 **
@@ -65,8 +66,8 @@ extern int __io_getchar(void) __attribute__((weak));
 
 register char * stack_ptr asm("sp");
 
-char *__env[1] = { 0 };
-char **environ = __env;
+char *env[1] = { 0 };
+__unused char **environ = env;
 
 
 /* Functions */
@@ -79,7 +80,7 @@ int _getpid(void)
 	return 1;
 }
 
-int _kill(int pid, int sig)
+int _kill(__unused int pid, __unused int sig)
 {
 	errno = EINVAL;
 	return -1;
@@ -91,7 +92,7 @@ void _exit (int status)
 	while (1) {}		/* Make sure we hang here */
 }
 
-__attribute__((weak)) int _read(int file, char *ptr, int len)
+__attribute__((weak)) int _read(__unused int file, char *ptr, int len)
 {
 	int DataIdx;
 
@@ -103,7 +104,7 @@ __attribute__((weak)) int _read(int file, char *ptr, int len)
 return len;
 }
 
-__attribute__((weak)) int _write(int file, char *ptr, int len)
+__attribute__((weak)) int _write(__unused int file, char *ptr, int len)
 {
 	int DataIdx;
 
@@ -137,58 +138,58 @@ caddr_t _sbrk(int incr)
 	return (caddr_t) prev_heap_end;
 }
 
-int _close(int file)
+int _close(__unused int file)
 {
 	return -1;
 }
 
 
-int _fstat(int file, struct stat *st)
+int _fstat(__unused int file, struct stat *st)
 {
 	st->st_mode = S_IFCHR;
 	return 0;
 }
 
-int _isatty(int file)
+int _isatty(__unused int file)
 {
 	return 1;
 }
 
-int _lseek(int file, int ptr, int dir)
+int _lseek(__unused int file,__unused  int ptr,__unused  int dir)
 {
 	return 0;
 }
 
-int _open(char *path, int flags, ...)
+int _open(__unused char *path, __unused int flags, ...)
 {
 	/* Pretend like we always fail */
 	return -1;
 }
 
-int _wait(int *status)
+int _wait(__unused int *status)
 {
 	errno = ECHILD;
 	return -1;
 }
 
-int _unlink(char *name)
+int _unlink(__unused char *name)
 {
 	errno = ENOENT;
 	return -1;
 }
 
-int _times(struct tms *buf)
+int _times(__unused struct tms *buf)
 {
 	return -1;
 }
 
-int _stat(char *file, struct stat *st)
+int _stat(__unused char *file, struct stat *st)
 {
 	st->st_mode = S_IFCHR;
 	return 0;
 }
 
-int _link(char *old, char *new)
+int _link(__unused char *old, __unused char *new)
 {
 	errno = EMLINK;
 	return -1;
@@ -200,7 +201,7 @@ int _fork(void)
 	return -1;
 }
 
-int _execve(char *name, char **argv, char **env)
+int _execve(__unused char *name, __unused char **argv, __unused char **env)
 {
 	errno = ENOMEM;
 	return -1;

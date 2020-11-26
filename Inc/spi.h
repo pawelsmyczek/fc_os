@@ -10,7 +10,6 @@
 
 extern uint8_t* dummyread;
 
-
 class SPI
 {
     SPI(const SPI&) = delete;
@@ -34,6 +33,7 @@ public:
 
 private:
     SPI_Dev_*           dev;
+    DMA_InitTypeDef    dma;
     void                (*callback)(void);
     uint8_t*            in_buffer;
     const uint8_t*      out_buffer;
@@ -42,7 +42,7 @@ private:
 
 
 void chip_select_init(CS_Pin* pin, GPIO_TypeDef* gpio, uint16_t pinNumber);
-int spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, uint16_t clockPolarity, DMA_InitTypeDef* dmaInitStructure, CS_Pin* ChipSelect,
+int spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, uint16_t clockPolarity, CS_Pin* ChipSelect,
         uint8_t irqChannel, uint32_t dmaChannel, DMA_Stream_TypeDef *txDmaStream,
         DMA_Stream_TypeDef *rxDmaStream, uint32_t dmaTxFlag, uint32_t dmaRxFlag, uint8_t priority);
 

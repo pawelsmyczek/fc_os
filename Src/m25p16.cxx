@@ -22,7 +22,7 @@ extern "C"
 
 SPI_Dev M25P16;
 CS_Pin M25P16_CS;
-
+static uint32_t num_pages_for_config;
 
 M25P16_::M25P16_(SPI* _spi) noexcept
 : spi(_spi)
@@ -157,10 +157,13 @@ bool M25P16_::write_config(const uint8_t *data, const uint32_t len)
     return true;
 }
 void M25P16_::write_page(uint8_t* data)
-{}
+{
+    (void)data;
+}
 void M25P16_::read_mem(uint8_t* data, uint8_t len)
 {
-
+    (void)data;
+    (void)len;
 }
 
 

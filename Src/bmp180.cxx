@@ -3,7 +3,6 @@
 //
 
 #include "bmp180.h"
-#include "iic.h"
 
 BMP180_Data                 bmp_data;
 
