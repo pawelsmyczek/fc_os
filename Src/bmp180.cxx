@@ -50,12 +50,12 @@ BMP_180::~BMP_180() noexcept
 }
 
 void BMP_180::write_reg(uint8_t reg, uint8_t value) {
-    write_data_async(&BMP180,BMP180_ADDR_WRITE,reg, &value, NULL, true);
+    i2c->write_data_async(BMP180_ADDR_WRITE,reg, &value, NULL, true);
 }
 
 uint8_t BMP_180::reaad_reg(uint8_t reg) {
     uint8_t value;
-    read_data(&BMP180, BMP180_ADDR_READ, reg, &value, 1);
+    i2c->read_data(BMP180_ADDR_READ, reg, &value, 1);
     return value;
 }
 
@@ -403,20 +403,20 @@ void bmp180_update(void){
 
 bool read_temp_start(){
     uint8_t value = BMP180_T_MEASURE;
-    return write_data_async(&BMP180,BMP180_ADDR_WRITE, BMP180_CTRL_MEAS_REG, &value, &read_temp_start_callback, true) > 0;
+    return write_data_async(&BMP180,BMP180_ADDR_WRITE, BMP180_CTRL_MEAS_REG, &value, &read_temp_start_callback, false) > 0;
 }
 
 bool read_temp_perform(){
-    return read_data_async(&BMP180, BMP180_ADDR_READ, BMP180_ADC_OUT_MSB_REG,2, bmp_data.temperature_buffer, &read_temp_perform_callback, true) > 0;
+    return read_data_async(&BMP180, BMP180_ADDR_READ, BMP180_ADC_OUT_MSB_REG,2, bmp_data.temperature_buffer, &read_temp_perform_callback, false) > 0;
 }
 
 bool read_press_start(){
     uint8_t value = BMP_OSS[bmp_data.mode].OSS_cmd;
-    return write_data_async(&BMP180,BMP180_ADDR_WRITE, BMP180_CTRL_MEAS_REG, &value, &read_press_start_callback, true) > 0;
+    return write_data_async(&BMP180,BMP180_ADDR_WRITE, BMP180_CTRL_MEAS_REG, &value, &read_press_start_callback, false) > 0;
 }
 
 bool read_press_perform(){
-    return read_data_async(&BMP180, BMP180_ADDR_READ, BMP180_ADC_OUT_MSB_REG,3, bmp_data.pressure_buffer, &read_press_perform_callback, true) > 0;
+    return read_data_async(&BMP180, BMP180_ADDR_READ, BMP180_ADC_OUT_MSB_REG,3, bmp_data.pressure_buffer, &read_press_perform_callback, false) > 0;
 }
 
 void read_temp_start_callback(uint8_t result){

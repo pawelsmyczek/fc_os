@@ -615,25 +615,31 @@ void uart_unregister_rx_callback(UART_dev* dev)
     dev->rx_cb = NULL;
 }
 
-void USART2_IRQHandler(void) { UART_2->dma_rx_irq_callback(); }
-void USART4_IRQHandler(void) { UART_4->dma_rx_irq_callback(); }
-void USART5_IRQHandler(void) { UART_5->dma_rx_irq_callback(); }
 
-void DMA1_Stream4_IRQHandler(void)
+//void DMA1_Stream4_IRQHandler(void)
+//{
+//    if (DMA_GetITStatus(DMA1_Stream4, DMA_IT_TCIF4))
+//    {
+//        DMA_ClearITPendingBit(DMA2_Stream4, DMA_IT_TCIF4);
+//        UART_2->dma_rx_irq_callback();
+//    }
+//}
+extern "C"
 {
-    if (DMA_GetITStatus(DMA1_Stream4, DMA_IT_TCIF4))
-    {
-        DMA_ClearITPendingBit(DMA2_Stream4, DMA_IT_TCIF4);
-        UART_2->dma_rx_irq_callback();
-    }
-}
 
-void DMA1_Stream5_IRQHandler(void)
-{
-    if (DMA_GetITStatus(DMA1_Stream5, DMA_IT_TCIF5))
+    void USART2_IRQHandler(void) { UART_2->dma_rx_irq_callback(); }
+    void USART4_IRQHandler(void) { UART_4->dma_rx_irq_callback(); }
+    void USART5_IRQHandler(void) { UART_5->dma_rx_irq_callback(); }
+
+    void DMA1_Stream5_IRQHandler(void)
     {
-        DMA_ClearITPendingBit(DMA1_Stream5, DMA_IT_TCIF5);
-        DMA_Cmd(DMA1_Stream5, DISABLE);
-        UART_2->dma_tx_irq_callback();
+        if (DMA_GetITStatus(DMA1_Stream5, DMA_IT_TCIF5))
+        {
+            DMA_ClearITPendingBit(DMA1_Stream5, DMA_IT_TCIF5);
+            DMA_Cmd(DMA1_Stream5, DISABLE);
+            UART_2->dma_tx_irq_callback();
+        }
     }
+
+
 }

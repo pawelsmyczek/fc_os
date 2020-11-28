@@ -7,14 +7,34 @@
 //
 #include "setup.h"
 
-static __IO uint32_t elapsed_ms_since_start = 0;
+static volatile uint32_t elapsed_ms_since_start = 0;
 static volatile uint32_t sysTickCycleCounter = 0;
-volatile uint32_t usTicks = 0;
+static volatile uint32_t usTicks = 0;
+
+RCC_ClocksTypeDef RCC_Clocks;
 
 void SysTick_Handler(void)
 {
     ++elapsed_ms_since_start;
 }
+
+
+void init_system_clock(void){
+    SystemInit();
+    RCC_GetClocksFreq(&RCC_Clocks);
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+    if (SysTick_Config(SystemCoreClock / 1000)) {
+        /* Capture error */
+        while (true);
+    }
+    usTicks = SystemCoreClock / 1000000L;
+//    // enable DWT access
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    // enable the CPU cycle counter
+    DWT_CTRL |= CYCCNTENA;
+    NVIC_SetPriority(SysTick_IRQn, 0);
+}
+
 
 uint64_t micros(void)
 {
@@ -47,12 +67,6 @@ void delay_ms(uint32_t ms)
 {
     delay_us(ms * 1000);
 }
-
-/**
-  * @brief  This function handles the test program fail.
-  * @param  None
-  * @retval None
-  */
 
 void Fail_Handler(void)
 {

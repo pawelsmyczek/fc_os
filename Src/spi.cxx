@@ -11,14 +11,19 @@ uint8_t*            spi2_in_buffer;
 uint8_t*            spi2_out_buffer;
 uint32_t dma_buffer_size;
 
-SPI* spi1 = nullptr;
-SPI* spi2 = nullptr;
+SPI* spi1;
+SPI* spi2;
 
-SPI::SPI(SPI_Dev_* dev_) noexcept
+SPI::SPI(const SPI_Dev_* dev_) noexcept
 : dev(dev_)
 {
+    if(dev->SPI == SPI1)
+        spi1 = this;
+    if(dev->SPI == SPI1)
+        spi2 = this;
+
     SPI_InitTypeDef             SPI_InitStruct;
-    chip_select_init(dev->ChipSelect->GPIO, dev->ChipSelect->PinNumber);
+    // chip_select_init(dev->ChipSelect->GPIO, dev->ChipSelect->PinNumber);
 
     SPI_I2S_DeInit(dev->SPI);
     SPI_InitStruct.SPI_Direction         = SPI_Direction_2Lines_FullDuplex;
@@ -36,7 +41,6 @@ SPI::SPI(SPI_Dev_* dev_) noexcept
     SPI_Cmd(dev->SPI, ENABLE);
 
     while (SPI_I2S_GetFlagStatus(dev->SPI, SPI_I2S_FLAG_TXE) == RESET);
-
     *dummyread = SPI_I2S_ReceiveData(dev->SPI);
 
     dma.DMA_FIFOMode = DMA_FIFOMode_Disable;
@@ -63,7 +67,6 @@ SPI::SPI(SPI_Dev_* dev_) noexcept
 
     callback = NULL;
 
-
 }
 
 SPI::~SPI() noexcept
@@ -73,10 +76,10 @@ SPI::~SPI() noexcept
 
 
 
-void SPI::chip_select_init(GPIO_TypeDef* gpio, uint16_t pinNumber){
-    dev->ChipSelect->GPIO       = gpio;
-    dev->ChipSelect->PinNumber  = pinNumber;
-}
+//void SPI::chip_select_init(GPIO_TypeDef* gpio, uint16_t pinNumber){
+//    dev->ChipSelect->GPIO       = gpio;
+//    dev->ChipSelect->PinNumber  = pinNumber;
+//}
 
 //int SPI::spi_init(SPI_Dev* dev, SPI_TypeDef* SPI, uint16_t clockPolarity, DMA_InitTypeDef* dmaInitStructure, CS_Pin* chipSelect,
 //             uint8_t irqChannel, uint32_t dmaChannel, DMA_Stream_TypeDef *txDmaStream,
@@ -167,6 +170,24 @@ void SPI::dma_transfer(uint8_t* out_data, uint8_t* in_data, uint32_t number_of_b
 }
 
 bool SPI::is_busy() { return busy; }
+
+void SPI::transfer_complete_callback(void){
+    spi_disable();
+    DMA_ClearFlag(dev->TX_DMA_Stream, dev->DMA_FLAG_TX);
+    DMA_ClearFlag(dev->RX_DMA_Stream, dev->DMA_FLAG_RX);
+
+    DMA_Cmd(dev->TX_DMA_Stream, DISABLE);
+    DMA_Cmd(dev->RX_DMA_Stream, DISABLE);
+
+    SPI_I2S_DMACmd(dev->SPI, SPI_I2S_DMAReq_Rx, DISABLE);
+    SPI_I2S_DMACmd(dev->SPI, SPI_I2S_DMAReq_Tx, DISABLE);
+
+    busy = false;
+
+    if (callback != NULL)
+        callback();
+}
+
 
 void SPI::set_spi_divisor(uint16_t data) {
 #define BR_CLEAR_MASK 0xFFC7
@@ -314,11 +335,11 @@ uint8_t spi_transfer(SPI_Dev *dev, uint8_t data) {
 }
 
 
-void spi_enable(CS_Pin *pin){
+void spi_enable(const CS_Pin *pin){
     GPIO_ResetBits(pin->GPIO, pin->PinNumber);
 }
 
-void spi_disable(CS_Pin *pin){
+void spi_disable(const CS_Pin *pin){
     GPIO_SetBits(pin->GPIO, pin->PinNumber);
 }
 
@@ -356,22 +377,22 @@ void spi_perform_transfer(SPI_Dev *dev){
 }
 
 
-void mpu_transfer_complete_callback(void){
-    spi_disable(MPU6000.ChipSelect);
-    DMA_ClearFlag(MPU6000.TX_DMA_Stream, MPU6000.DMA_FLAG_TX);
-    DMA_ClearFlag(MPU6000.RX_DMA_Stream, MPU6000.DMA_FLAG_RX);
-
-    DMA_Cmd(MPU6000.TX_DMA_Stream, DISABLE);
-    DMA_Cmd(MPU6000.RX_DMA_Stream, DISABLE);
-                                                     
-    SPI_I2S_DMACmd(MPU6000.SPI, SPI_I2S_DMAReq_Rx, DISABLE);
-    SPI_I2S_DMACmd(MPU6000.SPI, SPI_I2S_DMAReq_Tx, DISABLE);
-
-    MPU6000.busy = false;
-
-    if (MPU6000.callback != NULL)
-        MPU6000.callback();
-}
+//void mpu_transfer_complete_callback(void){
+//    spi_disable(MPU6000.ChipSelect);
+//    DMA_ClearFlag(MPU6000.TX_DMA_Stream, MPU6000.DMA_FLAG_TX);
+//    DMA_ClearFlag(MPU6000.RX_DMA_Stream, MPU6000.DMA_FLAG_RX);
+//
+//    DMA_Cmd(MPU6000.TX_DMA_Stream, DISABLE);
+//    DMA_Cmd(MPU6000.RX_DMA_Stream, DISABLE);
+//
+//    SPI_I2S_DMACmd(MPU6000.SPI, SPI_I2S_DMAReq_Rx, DISABLE);
+//    SPI_I2S_DMACmd(MPU6000.SPI, SPI_I2S_DMAReq_Tx, DISABLE);
+//
+//    MPU6000.busy = false;
+//
+//    if (MPU6000.callback != NULL)
+//        MPU6000.callback();
+//}
 
 void m25p16_transfer_complete_callback(void){
     spi_disable(M25P16.ChipSelect);
@@ -457,21 +478,22 @@ void set_spi_divisor(SPI_Dev* dev, uint16_t data) {
     SPI_Cmd(dev->SPI, ENABLE);
 }
 
-void DMA2_Stream3_IRQHandler()
+extern "C"
 {
-    if (DMA_GetITStatus(DMA2_Stream3, DMA_IT_TCIF3))
-    {
-        DMA_ClearITPendingBit(DMA2_Stream3, DMA_IT_TCIF3);
-        mpu_transfer_complete_callback();
+
+    void DMA2_Stream3_IRQHandler() {
+        if (DMA_GetITStatus(DMA2_Stream3, DMA_IT_TCIF3)) {
+            DMA_ClearITPendingBit(DMA2_Stream3, DMA_IT_TCIF3);
+            spi1->transfer_complete_callback();
+        }
     }
+
+
+    void DMA1_Stream4_IRQHandler() {
+        if (DMA_GetITStatus(DMA1_Stream4, DMA_IT_TCIF4)) {
+            DMA_ClearITPendingBit(DMA1_Stream4, DMA_IT_TCIF4);
+            m25p16_transfer_complete_callback();
+        }
+    }
+
 }
-
-
-//void DMA1_Stream4_IRQHandler()
-//{
-//    if (DMA_GetITStatus(DMA1_Stream4, DMA_IT_TCIF4))
-//    {
-//        DMA_ClearITPendingBit(DMA1_Stream4, DMA_IT_TCIF4);
-//        m25p16_transfer_complete_callback();
-//    }
-//}

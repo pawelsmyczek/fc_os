@@ -32,9 +32,6 @@ typedef struct
 
 int main(void)
 {
-
-    system_init();
-
     uint16_t pwm_out = 1000;
     uint16_t pwm_out_high = 1380;
     uint16_t pwm_out_low = 1000;
@@ -48,8 +45,22 @@ int main(void)
     uint16_t pwm_lf = 0, pwm_rf = 0, pwm_lb = 0, pwm_rb = 0;
     uint32_t test_procedure_time = 4000;
     uint32_t ellapsed_time = 0;
+    memset(serial_out, 0, sizeof(serial_out));
+
+    system_init();
+    SPI spi1(&MPU6000_Dev);
+    MPU6000_ mpu(&spi1);
+
+    BMP280 bmp(&BMP180);
+    uint8_t id = bmp.check();
+    bmp.soft_reset();
+    delay_ms(100);
+    bmp.status_read();
+    bmp.read_calibration();
+    bmp.write_config();
 
 
+    toggle_leds_on_start();
 
 //    bool success_flash_read = false;
 //    static config_t sample_config_file;
@@ -74,7 +85,7 @@ int main(void)
 //    sample_config_file.crc = crc;
 
 
-    delay_ms(10000);
+    delay_ms(3000);
 
 
     /**
@@ -175,8 +186,7 @@ int main(void)
 
         while(pwm_out++ < pwm_out_high ) {
             bmp180_update();
-            compute_angles();
-            positions_estimate();
+            mpu.compute_angles();
             pwm_rf = pwm_out; pwm_rb = pwm_out; pwm_lb = pwm_out; pwm_lf = pwm_out;
             for(uint8_t motor = 0; motor < 4; motor++)
                 write_motor(motor, pwm_out);
@@ -190,8 +200,7 @@ int main(void)
         ellapsed_time = millis() + test_procedure_time;
         while(millis() < ellapsed_time){
             bmp180_update();
-            compute_angles();
-            positions_estimate();
+            mpu.compute_angles();
             /**
              * start height increase until the set point is reached
              * */
@@ -205,7 +214,7 @@ int main(void)
              * end height increase until the set point is reached
              * */
             for(uint8_t i = 0; i < 3; i++){
-                (&pid_angle[i])->input = real_angle[i];
+                (&pid_angle[i])->input = 0;//real_angle[i];
                 pid_compute(&pid_angle[i]);
                 (&pid_angle[i])->set_point = 0.0f;
             }
@@ -228,9 +237,9 @@ int main(void)
             write_motor(MOTOR_4, pwm_lf);
             if(incr_data < 1024){
                 flight_data_file.height_data[incr_data] = bmp_data.delta_altitude;
-                flight_data_file.angle_roll[incr_data]  = real_angle[ROLL];
-                flight_data_file.angle_pitch[incr_data] = real_angle[PITCH];
-                flight_data_file.angle_yaw[incr_data]   = angle[YAW];
+                flight_data_file.angle_roll[incr_data]  = 0; //real_angle[ROLL];
+                flight_data_file.angle_pitch[incr_data] = 0; //real_angle[PITCH];
+                flight_data_file.angle_yaw[incr_data]   = 0; //angle[YAW];
             }
             // serial_out_len = sprintf(serial_out, "PWM_RF - %u, PWM_RB - %u, PWM_LB - %u, PWM_LF - %u, Z_VELOCITY - %.1f\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf, velocity[YAW]);
             // serial_out_len = sprintf(serial_out, "%u, %u, %u, %u, %.1f\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf, (&pid_z_velocity)->output);
@@ -252,8 +261,8 @@ int main(void)
 
         while(pwm_out-- > pwm_out_low ) {
             bmp180_update();
-            compute_angles();
-            positions_estimate();
+            mpu.compute_angles();
+            //positions_estimate();
             pwm_rf = pwm_out; pwm_rb = pwm_out; pwm_lb = pwm_out; pwm_lf = pwm_out;
             for (uint8_t motor = 0; motor < 4; motor++)
                 write_motor(motor, pwm_out);
@@ -281,38 +290,38 @@ int main(void)
      *
      * */
 
-    bmp_calibration_time+=millis();
-    while (millis() < bmp_calibration_time){
-        bmp180_update();
-        bmp_data.ground_altitude = bmp_data.low_pass_filtered;
-    }
+//    bmp_calibration_time+=millis();
+//    while (millis() < bmp_calibration_time){
+//        bmp180_update();
+//        bmp_data.ground_altitude = bmp_data.low_pass_filtered;
+//    }
 
 
     while(1)
     {
         INFO_LED_ON;
-        bmp180_update();
-        // BMP180_GetReadings(&bmp_data.temperature_read, &bmp_data.pressure_read, BMP180_STANDARD);
-        compute_angles();
-        positions_estimate();
+        // bmp.update();
+        mpu.compute_angles();
 
 //        sprintf(serial_out, "%.3f, %.3f, %.3f\n\r", velocity[ROLL], velocity[PITCH], velocity[YAW]);
 //        CDC_Send_DATA(serial_out);
 //        sprintf(serial_out, "ACCEL[YAW] - %u\n\r", sizeof(float));
         if(serial_in_buffer == 'a'){
-            serial_out_len = sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", position[ROLL], position[PITCH], position[YAW]);
+            serial_out_len = sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", mpu.get_accel(ROLL),
+                                                                            mpu.get_accel(PITCH),
+                                                                                mpu.get_accel(YAW));
             CDC_Send_DATA(reinterpret_cast<const uint8_t *>(serial_out), serial_out_len);
             delay_ms(10);
         }
-        if(serial_in_buffer == 'g'){
-            serial_out_len = sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", real_angle[ROLL], real_angle[PITCH], real_angle[YAW]);
+        else if(serial_in_buffer == 'g'){
+            serial_out_len = sprintf(serial_out, "%.1f, %.1f, %.1f\n\r", mpu.get_angle(ROLL), mpu.get_angle(PITCH), mpu.get_angle(YAW));
             CDC_Send_DATA(reinterpret_cast<const uint8_t *>(serial_out), serial_out_len);
             delay_ms(10);
         }
-        if(serial_in_buffer == 'b'){
-            serial_out_len = sprintf(serial_out, "%.2f\n\r", bmp_data.delta_altitude);
+        else if(serial_in_buffer == 'b'){
+            serial_out_len = sprintf(serial_out, "%.2f %.2f\n\r", bmp.get_press(), bmp.get_temp());
             CDC_Send_DATA(reinterpret_cast<const uint8_t *>(serial_out), serial_out_len);
-            delay_ms(10);
+            delay_ms(100);
         }
         INFO_LED_OFF;
 	}

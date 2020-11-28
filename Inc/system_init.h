@@ -10,6 +10,7 @@
 #include "mpu6000.h"
 #include "m25p16.h"
 #include "bmp180.h"
+#include "bmp280.h"
 #include "pid.h"
 #include "spi.h"
 #include "iic.h"
@@ -39,9 +40,7 @@ extern PIDControl pid_angle[3];
 extern PIDControl pid_z_velocity;
 extern PIDControl pid_altitude;
 
-
 void system_init(void);
-void init_system_clock(void);
 void init_clocks(void);
 void init_timers(void);
 void init_gpio(void);

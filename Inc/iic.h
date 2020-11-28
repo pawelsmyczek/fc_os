@@ -122,9 +122,12 @@ int8_t write_data(I2C_Dev* dev, uint8_t addr,
 
 void handle_error(I2C_Dev* dev);
 void handle_event(I2C_Dev* dev);
-void DMA1_Stream0_IRQHandler(void);
-void I2C1_ER_IRQHandler(void);
-void I2C1_EV_IRQHandler(void);
+extern "C"
+{
+    void DMA1_Stream0_IRQHandler(void);
+    void I2C1_ER_IRQHandler(void);
+    void I2C1_EV_IRQHandler(void);
+}
 
 
 #endif //FC_SOFT_IIC_H

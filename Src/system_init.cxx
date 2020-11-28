@@ -44,7 +44,6 @@ PIDControl pid_angle[3];
 PIDControl pid_z_velocity;
 PIDControl pid_altitude;
 
-RCC_ClocksTypeDef RCC_Clocks;
 TIM_TimeBaseInitTypeDef TIM_TimeBaseInitStructure;
 TIM_OCInitTypeDef TIM_OCInitStructure;
 GPIO_InitTypeDef GPIO_InitStructure;
@@ -52,26 +51,25 @@ GPIO_InitTypeDef GPIO_InitStructure;
 float KP = 3.0f, KI =  0.005f, KD = 0.15f;
 float KP_vel = 2.0f, KI_vel =  0.5f, KD_vel = 0.7f;
 float KP_alt = 10.0f, KI_alt =  0.05f, KD_alt = 3.0f;
-uint8_t bmp180_version;
 
 
 void system_init(void){
     init_system_clock();
     init_clocks();
     init_gpio();
-    init_timers();
+//    init_timers();
 
     /*SPI periphs init*/
 
-    chip_select_init(&MPU6000_CS, GPIOA, GPIO_Pin_4);
-    spi_init(&MPU6000, SPI1, SPI_CPOL_High, &MPU6000_CS, DMA2_Stream3_IRQn,
-             DMA_Channel_3, DMA2_Stream3,
-             DMA2_Stream2, DMA_FLAG_TCIF3, DMA_FLAG_TCIF2, 0x01);
+//    chip_select_init(&MPU6000_CS, GPIOA, GPIO_Pin_4);
+//    spi_init(&MPU6000, SPI1, SPI_CPOL_High, &MPU6000_CS, DMA2_Stream3_IRQn,
+//             DMA_Channel_3, DMA2_Stream3,
+//             DMA2_Stream2, DMA_FLAG_TCIF3, DMA_FLAG_TCIF2, 0x02);
 
     chip_select_init(&M25P16_CS, GPIOB, GPIO_Pin_12);
     spi_init(&M25P16, SPI2, SPI_CPOL_Low, &M25P16_CS, DMA1_Stream4_IRQn,
             DMA_Channel_0, DMA1_Stream4,
-            DMA1_Stream3, DMA_FLAG_TCIF4, DMA_FLAG_TCIF3, 0x02);
+            DMA1_Stream3, DMA_FLAG_TCIF4, DMA_FLAG_TCIF3, 0x03);
 
     /*I2C periph init*/
 
@@ -91,14 +89,11 @@ void system_init(void){
     delay_ms(100);
 
     init_motors();
-    delay_ms(1000);
-    init_mpu();
-    NVIC_DisableIRQ(EXTI4_IRQn);
+//    delay_ms(1000);
+//    init_mpu();
+    delay_ms(100);
     init_m25p16();
-    // delay_ms(200);
-    init_bmp180();
-    bmp180_version = BMP180_Check();
-    BMP180_ReadCalibration();
+    delay_ms(100);
 
 
     for(uint8_t i = 0; i < 3; i++) {
@@ -111,38 +106,21 @@ void system_init(void){
     pid_init(&pid_altitude, KP_alt, KI_alt, KD_alt, 0.01f, -80.0f, 80.0f,
              AUTOMATIC, DIRECT);
 
-    toggle_leds_on_start();
 
-    NVIC_DisableIRQ(EXTI4_IRQn);
-}
-
-void init_system_clock(void){
-    SystemInit();
-    RCC_GetClocksFreq(&RCC_Clocks);
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-    if (SysTick_Config(SystemCoreClock / 1000)) {
-        /* Capture error */
-        while (true);
-    }
-    usTicks = SystemCoreClock / 1000000L;
-    // enable DWT access
-    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
-    // enable the CPU cycle counter
-    DWT_CTRL |= CYCCNTENA;
-    NVIC_SetPriority(SysTick_IRQn, 0);
 }
 
 void init_clocks(void){
     /* SysTick end of count event each 10ms */
+    RCC_AHB2PeriphClockCmd(RCC_AHB2Periph_OTG_FS, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
     RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 
 
     //    RCC_AHB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
-    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+//    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM1, ENABLE);
+//    RCC_APB2PeriphClockCmd(RCC_APB2Periph_TIM8, ENABLE);
+//    RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
 
@@ -151,8 +129,6 @@ void init_clocks(void){
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
-
-
 
 }
 
@@ -169,7 +145,7 @@ void init_gpio(void){
 
     /*SPI1*/
 
-    // CS PC4
+    // CS PA4
 
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_4;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
@@ -177,8 +153,8 @@ void init_gpio(void){
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
 
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-    GPIOA->BSRRL |= GPIO_Pin_4;
+    GPIO_Init(GPIOC, &GPIO_InitStructure);
+    GPIOC->BSRRL |= GPIO_Pin_4;
 
     // SCK PB3
 
@@ -307,54 +283,54 @@ void init_gpio(void){
      */
     // 4: PA8
 
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource8, GPIO_AF_TIM1);
-
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-    // 3: PA10
-
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_TIM1);
-
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-    // 2: PC6
-
-    GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_TIM8);
-
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_6;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
-
-    // 1: PB0
-
-    GPIO_PinAFConfig(GPIOB, GPIO_PinSource0, GPIO_AF_TIM3);
-
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_0;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
+//    GPIO_PinAFConfig(GPIOA, GPIO_PinSource8, GPIO_AF_TIM1);
+//
+//    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_8;
+//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+//    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+//    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+//    GPIO_Init(GPIOA, &GPIO_InitStructure);
+//
+//    // 3: PA10
+//
+//    GPIO_PinAFConfig(GPIOA, GPIO_PinSource10, GPIO_AF_TIM1);
+//
+//    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10;
+//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+//    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+//    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+//    GPIO_Init(GPIOA, &GPIO_InitStructure);
+//
+//    // 2: PC6
+//
+//    GPIO_PinAFConfig(GPIOC, GPIO_PinSource6, GPIO_AF_TIM8);
+//
+//    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_6;
+//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+//    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+//    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+//    GPIO_Init(GPIOC, &GPIO_InitStructure);
+//
+//    // 1: PB0
+//
+//    GPIO_PinAFConfig(GPIOB, GPIO_PinSource0, GPIO_AF_TIM3);
+//
+//    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_0;
+//    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;
+//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+//    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+//    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
+//    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
     // EXT INT
 
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_4;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL ;
     GPIO_Init(GPIOC, &GPIO_InitStructure);
 

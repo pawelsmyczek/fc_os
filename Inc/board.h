@@ -6,28 +6,40 @@
 #define FC_SOFT_BOARD_H
 
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
 #include "setup.h"
+#ifdef __cplusplus
+}
+#endif
 
 #define INFO_LED_ON         GPIO_SetBits(GPIOC, GPIO_Pin_14)
 #define INFO_LED_OFF        GPIO_ResetBits(GPIOC, GPIO_Pin_14)
 
-extern SPI_Dev MPU6000;
-extern CS_Pin MPU6000_CS;
+//extern SPI_Dev MPU6000;
+//extern CS_Pin MPU6000_CS;
 
+const CS_Pin MPU6000_CS =
+        {
+        .GPIO = GPIOA,
+        .PinNumber = GPIO_Pin_4
+        };
 
-//const SPI_Dev_ MPU6000_ =
-//        {
-//        .SPI =                SPI1,
-//        .ChipSelect =         &MPU6000_CS,
-//        .IRQChannel =         DMA2_Stream3_IRQn,
-//        .DMA_Channel =        DMA_Channel_3,
-//        .TX_DMA_Stream =      DMA2_Stream3,
-//        .RX_DMA_Stream =      DMA2_Stream2,
-//        .SPI_CPol =           SPI_CPOL_High,
-//        .DMA_FLAG_TX =        DMA_FLAG_TCIF3,
-//        .DMA_FLAG_RX =        DMA_FLAG_TCIF2,
-//        .IRQ_Prio =           0x01
-//        };
+const SPI_Dev_ MPU6000_Dev =
+        {
+        .SPI =                SPI1,
+        .ChipSelect =         &MPU6000_CS,
+        .IRQChannel =         DMA2_Stream3_IRQn,
+        .DMA_Channel =        DMA_Channel_3,
+        .TX_DMA_Stream =      DMA2_Stream3,
+        .RX_DMA_Stream =      DMA2_Stream2,
+        .SPI_CPol =           SPI_CPOL_High,
+        .DMA_FLAG_TX =        DMA_FLAG_TCIF3,
+        .DMA_FLAG_RX =        DMA_FLAG_TCIF2,
+        .IRQ_Prio =           0x02
+        };
 
 extern SPI_Dev M25P16;
 extern CS_Pin M25P16_CS;

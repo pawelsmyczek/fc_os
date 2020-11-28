@@ -110,19 +110,19 @@ void I2C::unstick(){
 
     /*set output modes for pins*/
 
-    GPIO_InitStruct.GPIO_Pin = dev->SCL_Pin;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_InitStruct.GPIO_Pin = dev->SDA_Pin;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
     GPIO_SetBits(GPIOB, dev->SCL_Pin);
     GPIO_SetBits(GPIOB, dev->SDA_Pin);
@@ -152,19 +152,19 @@ void I2C::unstick(){
     delay_us(1);
 
     // turn things back on
-    GPIO_InitStruct.GPIO_Pin = dev->SCL_Pin;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_InitStruct.GPIO_Pin = dev->SDA_Pin;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
     I2C_Cmd(dev->I2C, ENABLE);
 
     current_status = IDLE;
@@ -191,19 +191,19 @@ bool I2C::check_busy(){
             if (return_code == RESULT_ERROR) {
 
                 I2C_Cmd(dev->I2C, DISABLE);
-                GPIO_InitStruct.GPIO_Pin = dev->SCL_Pin;
-                GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-                GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
-                GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-                GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-                GPIO_Init(GPIOB, &GPIO_InitStruct);
+                GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+                GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+                GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+                GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-                GPIO_InitStruct.GPIO_Pin = dev->SDA_Pin;
-                GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-                GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
-                GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-                GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-                GPIO_Init(GPIOB, &GPIO_InitStruct);
+                GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+                GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+                GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+                GPIO_Init(GPIOB, &GPIO_InitStructure);
 
                 // send a start condition
                 GPIO_ResetBits(GPIOB, dev->SCL_Pin);
@@ -218,19 +218,19 @@ bool I2C::check_busy(){
                 delay_us(1);
 
                 // turn things back on
-                GPIO_InitStruct.GPIO_Pin = dev->SCL_Pin;
-                GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-                GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-                GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-                GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-                GPIO_Init(GPIOB, &GPIO_InitStruct);
+                GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+                GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+                GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+                GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-                GPIO_InitStruct.GPIO_Pin = dev->SDA_Pin;
-                GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-                GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-                GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-                GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-                GPIO_Init(GPIOB, &GPIO_InitStruct);
+                GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+                GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+                GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+                GPIO_Init(GPIOB, &GPIO_InitStructure);
                 I2C_Cmd(dev->I2C, ENABLE);
 
                 current_status = IDLE;
@@ -637,7 +637,7 @@ void i2c_init(I2C_Dev* dev, I2C_TypeDef*        i2c,
 
     last_event = micros();
     I2C_Cmd(dev->I2C, ENABLE);
-    unstick(dev);
+    // unstick(dev);
 
     dev->initialised = is_initialised;
 
@@ -653,19 +653,19 @@ void unstick(I2C_Dev* dev){
 
     /*set output modes for pins*/
 
-    GPIO_InitStruct.GPIO_Pin = dev->SCL_Pin;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_InitStruct.GPIO_Pin = dev->SDA_Pin;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
     GPIO_SetBits(GPIOB, dev->SCL_Pin);
     GPIO_SetBits(GPIOB, dev->SDA_Pin);
@@ -695,19 +695,19 @@ void unstick(I2C_Dev* dev){
     delay_us(1);
 
     // turn things back on
-    GPIO_InitStruct.GPIO_Pin = dev->SCL_Pin;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    GPIO_InitStruct.GPIO_Pin = dev->SDA_Pin;
-    GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-    GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-    GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOB, &GPIO_InitStruct);
+    GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    GPIO_Init(GPIOB, &GPIO_InitStructure);
     I2C_Cmd(dev->I2C, ENABLE);
 
     dev->current_status = IDLE;
@@ -734,19 +734,19 @@ bool check_busy(I2C_Dev* dev){
             if (dev->return_code == RESULT_ERROR) {
 
                 I2C_Cmd(dev->I2C, DISABLE);
-                GPIO_InitStruct.GPIO_Pin = dev->SCL_Pin;
-                GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-                GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
-                GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-                GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-                GPIO_Init(GPIOB, &GPIO_InitStruct);
+                GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+                GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+                GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+                GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-                GPIO_InitStruct.GPIO_Pin = dev->SDA_Pin;
-                GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-                GPIO_InitStruct.GPIO_Mode = GPIO_Mode_OUT;
-                GPIO_InitStruct.GPIO_OType = GPIO_OType_PP;
-                GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-                GPIO_Init(GPIOB, &GPIO_InitStruct);
+                GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+                GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;
+                GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+                GPIO_Init(GPIOB, &GPIO_InitStructure);
 
                 // send a start condition
                 GPIO_ResetBits(GPIOB, dev->SCL_Pin);
@@ -761,19 +761,19 @@ bool check_busy(I2C_Dev* dev){
                 delay_us(1);
 
                 // turn things back on
-                GPIO_InitStruct.GPIO_Pin = dev->SCL_Pin;
-                GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-                GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-                GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-                GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-                GPIO_Init(GPIOB, &GPIO_InitStruct);
+                GPIO_InitStructure.GPIO_Pin = dev->SCL_Pin;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+                GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+                GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+                GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-                GPIO_InitStruct.GPIO_Pin = dev->SDA_Pin;
-                GPIO_InitStruct.GPIO_Speed = GPIO_Speed_2MHz;
-                GPIO_InitStruct.GPIO_Mode = GPIO_Mode_AF;
-                GPIO_InitStruct.GPIO_OType = GPIO_OType_OD;
-                GPIO_InitStruct.GPIO_PuPd = GPIO_PuPd_NOPULL;
-                GPIO_Init(GPIOB, &GPIO_InitStruct);
+                GPIO_InitStructure.GPIO_Pin = dev->SDA_Pin;
+                GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+                GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+                GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+                GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
+                GPIO_Init(GPIOB, &GPIO_InitStructure);
                 I2C_Cmd(dev->I2C, ENABLE);
 
                 dev->current_status = IDLE;
@@ -816,7 +816,7 @@ int8_t read_data_async(I2C_Dev* dev, uint8_t _addr,
     dev->return_code = RESULT_SUCCESS;
 
     DMA_DeInit(dev->DMA_Stream);
-    dev->DMA_InitStructure->DMA_BufferSize = (uint16_t)(dev->length);
+    dev->DMA_InitStructure->DMA_BufferSize = (uint32_t)(dev->length);
     dev->DMA_InitStructure->DMA_Memory0BaseAddr = (uint32_t)(dev->data);
     DMA_Init(dev->DMA_Stream, dev->DMA_InitStructure);
 
@@ -836,7 +836,8 @@ int8_t read_data_async(I2C_Dev* dev, uint8_t _addr,
     last_event = micros();
     if (is_blocking)
     {
-        while (check_busy(dev));
+        while (check_busy(dev))
+            ;
     }
     last_event = micros();
 
@@ -1105,28 +1106,29 @@ void handle_event(I2C_Dev* dev){
     }
 }
 
-
-void DMA1_Stream0_IRQHandler(void)
+extern "C"
 {
-    if (DMA_GetFlagStatus(DMA1_Stream0, DMA_FLAG_TCIF0))
+
+    void DMA1_Stream0_IRQHandler(void)
     {
-        /* Clear transmission complete flag */
-        DMA_ClearFlag(DMA1_Stream0, DMA_FLAG_TCIF0);
+        if (DMA_GetFlagStatus(DMA1_Stream0, DMA_FLAG_TCIF0))
+        {
+            /* Clear transmission complete flag */
+            DMA_ClearFlag(DMA1_Stream0, DMA_FLAG_TCIF0);
 
-        I2C_DMACmd(I2C1, DISABLE);
-        /* Send I2C1 STOP Condition */
-        I2C_GenerateSTOP(I2C1, ENABLE);
-        /* Disable DMA channel*/
-        DMA_Cmd(DMA1_Stream0, DISABLE);
-        /* Turn off I2C interrupts, because we are done with the transfer */
-        I2C_ITConfig(I2C1, I2C_IT_EVT | I2C_IT_ERR, DISABLE);
+            I2C_DMACmd(I2C1, DISABLE);
+            /* Send I2C1 STOP Condition */
+            I2C_GenerateSTOP(I2C1, ENABLE);
+            /* Disable DMA channel*/
+            DMA_Cmd(DMA1_Stream0, DISABLE);
+            /* Turn off I2C interrupts, because we are done with the transfer */
+            I2C_ITConfig(I2C1, I2C_IT_EVT | I2C_IT_ERR, DISABLE);
 
-        bmp180_transfer_complete_cb(); // TODO make this configurable
+            bmp180_transfer_complete_cb(); // TODO make this configurable
+        }
     }
-}
-
 void I2C1_ER_IRQHandler(void) { handle_error(&BMP180); }
 
 void I2C1_EV_IRQHandler(void) { handle_event(&BMP180); }
-
+}
 

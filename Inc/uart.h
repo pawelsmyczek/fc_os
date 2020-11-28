@@ -91,7 +91,7 @@ extern "C"
     void USART4_IRQHandler(void);
     void USART5_IRQHandler(void);
     void DMA1_Stream5_IRQHandler(void);
-    void DMA1_Stream4_IRQHandler(void);
+//    void DMA1_Stream4_IRQHandler(void);
 }
 
 

@@ -5,10 +5,6 @@
 #ifndef FC_SOFT_SETUP_H
 #define FC_SOFT_SETUP_H
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif
 
 #include <ctype.h>
 #include <stdarg.h>
@@ -62,7 +58,7 @@ typedef struct
 typedef struct
 {
     SPI_TypeDef*        SPI;
-    CS_Pin*             ChipSelect;
+    const CS_Pin*       ChipSelect;
     uint8_t             IRQChannel;
     uint32_t            DMA_Channel;
     DMA_Stream_TypeDef* TX_DMA_Stream;
@@ -70,7 +66,7 @@ typedef struct
     uint16_t            SPI_CPol;
     uint32_t            DMA_FLAG_TX;
     uint32_t            DMA_FLAG_RX;
-    uint8_t            IRQ_Prio;
+    uint8_t             IRQ_Prio;
 }SPI_Dev_;
 
 
@@ -179,7 +175,7 @@ typedef struct
 
 
 
-extern volatile uint32_t usTicks;
+extern GPIO_InitTypeDef GPIO_InitStructure;
 
 // USER DEFINED STRUCTS
 
@@ -187,6 +183,8 @@ extern volatile uint32_t usTicks;
 
 
 void SysTick_Handler(void);
+
+void init_system_clock(void);
 
 uint32_t millis(void);
 
@@ -198,9 +196,7 @@ void delay_ms(uint32_t ms);
 
 void Fail_Handler(void);
 
-#ifdef __cplusplus
-}
-#endif
+
 
 
 #endif //FC_SOFT_SETUP_H

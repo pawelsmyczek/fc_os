@@ -42,6 +42,8 @@
 // reference for altitude calculation
 #define SEA_LEVEL_PRESSURE              101325
 
+#define BMP280_I2C_ADDRESS  0x76
+#define BMP280_CHIP_ID  0x58 /* BMP280 has chip-id 0x58 */
 
 typedef enum {
     BMP180_LOWPOWER = 0,      // Ultra low power mode (oss = 0)
@@ -202,6 +204,7 @@ static const BMP180_OSS_TypeDef BMP_OSS[] = {
         {15, BMP180_P2_MEASURE},
         {27, BMP180_P3_MEASURE}
 };
+
 
 
 // Function prototypes
