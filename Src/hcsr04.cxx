@@ -42,22 +42,22 @@ volatile uint16_t& HCSR04::measurement_end()
 }
 
 
-void EXTI15_10_IRQHandler()
-{
-    //odczyt licznika timera przy zboczu narastajacym i opadajacym
-    //pozwoli to wyliczyc czas trwania impulsu i odleglosc
-    if (EXTI_GetITStatus(EXTI_Line10))
-    {
-        if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_10) == SET)
-        {
-            hcsr04->measurement_start() = TIM_GetCounter(TIM2);
-        }
-        if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_10) == RESET)
-        {
-            hcsr04->measurement_end() = TIM_GetCounter(TIM2);
-        }
-        EXTI_ClearITPendingBit(EXTI_Line10);
-    }
+//void EXTI15_10_IRQHandler()
+//{
+//    //odczyt licznika timera przy zboczu narastajacym i opadajacym
+//    //pozwoli to wyliczyc czas trwania impulsu i odleglosc
+//    if (EXTI_GetITStatus(EXTI_Line10))
+//    {
+//        if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_10) == SET)
+//        {
+//            hcsr04->measurement_start() = TIM_GetCounter(TIM2);
+//        }
+//        if(GPIO_ReadInputDataBit(GPIOC,GPIO_Pin_10) == RESET)
+//        {
+//            hcsr04->measurement_end() = TIM_GetCounter(TIM2);
+//        }
+//        EXTI_ClearITPendingBit(EXTI_Line10);
+//    }
 //
 //    if (EXTI_GetITStatus(EXTI_Line11))
 //    {
@@ -85,5 +85,5 @@ void EXTI15_10_IRQHandler()
 //        }
 //        EXTI_ClearITPendingBit(EXTI_Line12);
 //    }
-}
+//}
 

@@ -38,7 +38,7 @@ const SPI_Dev_ MPU6000_Dev =
         .SPI_CPol =           SPI_CPOL_High,
         .DMA_FLAG_TX =        DMA_FLAG_TCIF3,
         .DMA_FLAG_RX =        DMA_FLAG_TCIF2,
-        .IRQ_Prio =           0x02
+        .IRQ_Prio =           0x01
         };
 
 extern SPI_Dev M25P16;
@@ -79,7 +79,7 @@ extern I2C_Dev BMP180;
 //        };
 
 
-extern UART_dev RC;
+//extern UART_dev RC;
 
 //const UART_dev_ someDev =
 //        {

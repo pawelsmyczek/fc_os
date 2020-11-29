@@ -69,7 +69,7 @@ void system_init(void){
     chip_select_init(&M25P16_CS, GPIOB, GPIO_Pin_12);
     spi_init(&M25P16, SPI2, SPI_CPOL_Low, &M25P16_CS, DMA1_Stream4_IRQn,
             DMA_Channel_0, DMA1_Stream4,
-            DMA1_Stream3, DMA_FLAG_TCIF4, DMA_FLAG_TCIF3, 0x03);
+            DMA1_Stream3, DMA_FLAG_TCIF4, DMA_FLAG_TCIF3, 0x02);
 
     /*I2C periph init*/
 
@@ -153,8 +153,8 @@ void init_gpio(void){
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
 
-    GPIO_Init(GPIOC, &GPIO_InitStructure);
-    GPIOC->BSRRL |= GPIO_Pin_4;
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+    GPIOA->BSRRL |= GPIO_Pin_4;
 
     // SCK PB3
 

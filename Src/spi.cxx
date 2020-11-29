@@ -165,7 +165,7 @@ void SPI::dma_transfer(uint8_t* out_data, uint8_t* in_data, uint32_t number_of_b
     dma_buffer_size = number_of_bytes;
     in_buffer = (in_data == NULL) ? dummyread : in_data;
     out_buffer = (out_data == NULL) ? dummyread : out_data;
-    callback = callback;
+    this->callback = callback;
     spi_perform_transfer();
 }
 
@@ -184,7 +184,7 @@ void SPI::transfer_complete_callback(void){
 
     busy = false;
 
-    if (callback != NULL)
+    if(callback)
         callback();
 }
 

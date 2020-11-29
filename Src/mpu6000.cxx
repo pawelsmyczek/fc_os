@@ -3,14 +3,14 @@
 //
 
 #include "mpu6000.h"
-#include <cmath>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
-#include "MadgwickAHRS.h"
-#include "kalman_filter.h"
+    #include "MadgwickAHRS.h"
+    #include "kalman_filter.h"
+    #include "math.h"
 #ifdef __cplusplus
 }
 #endif
@@ -58,6 +58,17 @@ MPU6000_* mpu;
 MPU6000_::MPU6000_(SPI* _spi)
 : spi(_spi)
 {
+    for(uint8_t i = 0; i < 3; ++i)
+    {
+        accelCTBias[i] = .0f;
+        accelRTError[i] = .0f;
+        gyroCTBias[i] = .0f;
+        gyroRTError[i] = .0f;
+        real_angle[i] = .0f;
+        accel_sum[i] = .0f;
+        gyro_sum[i] = .0f;
+        real_angle[i] = .0f;
+    }
     mpu = this;
 
     spi->set_spi_divisor(2);                         // 21 MHz SPI clock (within 20 +/- 10%)
@@ -71,8 +82,8 @@ MPU6000_::MPU6000_(SPI* _spi)
     write(MPU6000_SMPLRT_DIV, 0x00);
     write(MPU6000_CONFIG, BITS_DLPF_CFG_10HZ);
     write(MPU6000_ACCEL_CONFIG, BITS_FS_4G);
-    write(MPU6000_GYRO_CONFIG, BITS_FS_2000DPS);
-    // write(MPU6000_INT_PIN_CFG, BIT_INT_ANYRD_2CLEAR);
+    write(MPU6000_GYRO_CONFIG, BITS_FS_500DPS);
+    write(MPU6000_INT_PIN_CFG, BIT_INT_ANYRD_2CLEAR);
     write(MPU6000_INT_ENABLE, BIT_RAW_RDY_EN);
     delay_ms(100);
 
@@ -219,7 +230,7 @@ void MPU6000_::calibrate_mpu(void)
 
 
     for (uint16_t samples = 0; samples < SAMPLES_NUM; samples++) {
-        compute_mpu_tc_bias();
+        // compute_mpu_tc_bias();
         accelRTError[ROLL ] += ((float)raw_accel[ROLL ].value / 8192.0f) - accelCTBias[ROLL ];
         accelRTError[PITCH] += ((float)raw_accel[PITCH].value / 8192.0f) - accelCTBias[PITCH];
         accelRTError[YAW  ] += ((float)raw_accel[YAW  ].value / 8192.0f) - accelCTBias[YAW  ];
@@ -230,8 +241,8 @@ void MPU6000_::calibrate_mpu(void)
     }
 
     for (uint8_t axis = 0; axis < 3; axis++) {
-        accelRTError[axis]   = accelRTError[axis] / (float)SAMPLES_NUM;
-        gyroRTError[axis] = gyroRTError[axis] / (float)SAMPLES_NUM;
+        accelRTError[axis]   /= SAMPLES_NUM;
+        gyroRTError[axis] /= SAMPLES_NUM;
     }
     calibrated = true;
 
@@ -301,7 +312,7 @@ void MPU6000_::compute_angles(void)
 float
 MPU6000_::get_angle(uint8_t axis)
 {
-    return angle[axis];
+    return real_angle[axis];
 }
 
 
@@ -633,11 +644,8 @@ void MPU6000_::positions_estimate(void)
 //    if (counter[YAW]>=5) { velocity_previous[YAW] = 0.0f;   velocity[YAW] = 0.0f;}
 //}
 
-extern "C"
+void EXTI4_IRQHandler(void)
 {
-    void EXTI4_IRQHandler(void)
-    {
-        EXTI_ClearITPendingBit(EXTI_Line4);
-        mpu->read_mpu_dma();
-    }
+    EXTI_ClearITPendingBit(EXTI_Line4);
+    mpu->read_mpu_dma();
 }

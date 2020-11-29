@@ -59,5 +59,12 @@ void mpu_transfer_complete_callback(void);
 void m25p16_transfer_complete_callback(void);
 void set_spi_divisor(SPI_Dev* dev, uint16_t data);
 
+extern "C"
+{
+    void DMA2_Stream3_IRQHandler();
+
+    void DMA1_Stream4_IRQHandler();
+}
+
 
 #endif //FC_SOFT_SPI_H

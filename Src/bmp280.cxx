@@ -46,7 +46,7 @@ void BMP280::write_reg(uint8_t reg, uint8_t value) {
 
 uint8_t BMP280::read_reg(uint8_t reg) {
     uint8_t value;
-    read_data_async(dev, BMP280_I2C_ADDRESS, reg, 1, &value, nullptr, true);
+    read_data(dev, BMP280_I2C_ADDRESS, reg, &value, 1);
     return value;
 }
 
