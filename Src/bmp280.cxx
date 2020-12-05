@@ -7,22 +7,38 @@ static uint64_t next_update_ms = 0;
 static uint64_t last_update_ms = 0;
 // Delay and Commands for different BMP180 oversampling levels
 static uint8_t oss;
+static uint16_t t_standby;
 static  bool new_data_available = false;
 static const uint8_t bmp_oss[5] = {
-        6,
-        8,
-        12,
-        21,
-        40
+        7,
+        9,
+        14,
+        23,
+        44
 };
 
-BMP280::BMP280(I2C_Dev* _dev) noexcept
+static const uint16_t bmp_tstandby[] =
+        {
+            1,      /* stand by time 0.5ms */
+            63,      /* stand by time 62.5ms */
+            125,     /* stand by time 125ms */
+            250,     /* stand by time 250ms */
+            500,     /* stand by time 500ms */
+            1000,    /* stand by time 1s */
+            2000,    /* stand by time 2s BMP280, 10ms BME280 */
+            40000    /* stand by time 4s BMP280, 20ms BME280 */
+        };
+
+BMP280* bmp;
+
+BMP280::BMP280(I2C* _dev) noexcept
     : dev(_dev)
     , addr(0)
     , id(0)
     , pressure(.0f)
     , temperature(.0f)
 {
+    bmp = this;
     if(!dev)
         return ;
 
@@ -37,24 +53,23 @@ BMP280::BMP280(I2C_Dev* _dev) noexcept
             .standby = BMP280_STANDBY_05
     };
     oss = params.oversampling_pressure;
-
+    t_standby = params.standby;
 }
 
 void BMP280::write_reg(uint8_t reg, uint8_t value) {
-    write_data_async(dev,BMP280_I2C_ADDRESS,reg, &value,nullptr, true);
+    dev->write_data(BMP280_I2C_ADDRESS_WRITE,reg, &value);
 }
 
 uint8_t BMP280::read_reg(uint8_t reg) {
-    uint8_t value;
-    read_data(dev, BMP280_I2C_ADDRESS, reg, &value, 1);
+    uint8_t value = 0;
+    dev->read_data(BMP280_I2C_ADDRESS_READ, reg, &value, 1);
     return value;
 }
 
 BMP280_RESULT
 BMP280::check(void)
 {
-    uint8_t value;
-    value = read_reg(BMP280_CHIP_ID);
+    uint8_t value = read_reg(BMP280_CHIP_ID_ADDR);
     return (value == BMP280_CHIP_ID) ? BMP_SUCCESS : BMP_ERROR;
 
 }
@@ -71,8 +86,10 @@ BMP280::status_read()
 {
     for( ; ;)
     {
-        if(read_reg(BMP280_REG_STATUS))
+        delay_ms(1);
+        if(!read_reg(BMP280_REG_STATUS)) {
             break;
+        }
     }
 }
 
@@ -92,7 +109,7 @@ void BMP280::read_calibration(void)
     uint8_t buffer[BMP280_CALIB_DATA_LEN];
     memset(buffer, 0, sizeof(buffer));
 
-    read_data(dev, BMP280_I2C_ADDRESS, BMP280_CALIB_PROM_ID, buffer, BMP280_CALIB_DATA_LEN);
+    dev->read_data(BMP280_I2C_ADDRESS_READ, BMP280_CALIB_PROM_ID, buffer, BMP280_CALIB_DATA_LEN);
     bmp_cali.dig_T1 = (buffer[0] << 8) | buffer[1];
     bmp_cali.dig_T2 = (buffer[2] << 8) | buffer[3];
     bmp_cali.dig_T3 = (buffer[4] << 8) | buffer[5];
@@ -128,7 +145,7 @@ BMP280::pressure_calculate(void)
 {
     int64_t var1, var2, p;
     int32_t adc_press;
-    adc_press = data_buffer[0] << 12 | data_buffer[1] << 4 | data_buffer[2] >> 4;
+    adc_press = data_buffer[0] /* << 12*/ | data_buffer[1] /*<< 4*/ | data_buffer[2] /*>> 4*/;
 
     var1 = (int64_t) fine_temp - 128000;
     var2 = var1 * var1 * (int64_t) bmp_cali.dig_P6;
@@ -144,8 +161,8 @@ BMP280::pressure_calculate(void)
 
     p = 1048576 - adc_press;
     p = (((p << 31) - var2) * 3125) / var1;
-    var1 = ((int64_t) bmp_cali.dig_P9 * (p >> 13) * (p >> 13)) >> 25;
-    var2 = ((int64_t) bmp_cali.dig_P8 * p) >> 19;
+    var1 = ((int64_t)bmp_cali.dig_P9 * (p >> 13) * (p >> 13)) >> 25;
+    var2 = ((int64_t)bmp_cali.dig_P8 * p) >> 19;
 
     p = ((p + var1 + var2) >> 8) + ((int64_t) bmp_cali.dig_P7 << 4);
     up = p;
@@ -175,14 +192,14 @@ void data_perform_callback(uint8_t val)
 {
     (void)val;
     last_update_ms = millis();
-    next_update_ms = last_update_ms + bmp_oss[oss];
+    next_update_ms = last_update_ms + bmp_oss[oss] + bmp_tstandby[t_standby];
 
     new_data_available = true;
 }
 
 bool BMP280::read_data_perform()
 {
-    return read_data_async(dev, BMP280_I2C_ADDRESS,
+    return dev->read_data_async(BMP280_I2C_ADDRESS_READ,
                            BMP280_REG_PRESS_MSB,
                            6, data_buffer,
                            &data_perform_callback, false) > 0;
@@ -191,7 +208,7 @@ bool BMP280::read_data_perform()
 float
 BMP280::get_press()
 {
-    return static_cast<float>(up)/256.f;
+    return static_cast<float>(up);
 }
 float
 BMP280::get_temp()

@@ -26,8 +26,6 @@
 #define MOTOR_3     2
 #define MOTOR_4     3
 
-#define UART_RX_BUFFER_SIZE 512
-#define UART_TX_BUFFER_SIZE 512
 
 
 
@@ -112,41 +110,16 @@ typedef struct
 
 
 
-typedef struct
-{
-    USART_TypeDef*      UART;
-    uint16_t            RX_Pin;
-    uint16_t            Tx_Pin;
-    uint8_t             RX_PinSource;
-    uint8_t             TX_PinSource;
-    IRQn_Type           USART_IRQn;
-    IRQn_Type           Rx_DMA_IRQn;
-    IRQn_Type           Tx_DMA_IRQn;
-    DMA_Stream_TypeDef* Rx_DMA_Stream;
-    DMA_Stream_TypeDef* Tx_DMA_Stream;
-    uint32_t            DMA_Channel;
-    uint32_t            DMA_Rx_IT_Bit;
-    uint32_t            DMA_Tx_IT_Bit;
-    void                (*rx_cb)(uint8_t data);
-    uint32_t            baudrate;                 // the baudrate for the connection
-    uint8_t             rx_buffer_[UART_RX_BUFFER_SIZE]; // the buffer for incoming data
-    uint8_t             tx_buffer_[UART_TX_BUFFER_SIZE]; // the buffer for outgoing data
-    uint16_t            rx_buffer_head_;
-    uint16_t            rx_buffer_tail_;
-    uint16_t            tx_buffer_head_;
-    uint16_t            tx_buffer_tail_;
-} UART_dev;
-
 
 typedef struct
 {
     USART_TypeDef*      UART;
-    GPIO_TypeDef*       GPIO_RX;
-    GPIO_TypeDef*       GPIO_TX;
-    uint16_t            RX_Pin;
-    uint16_t            Tx_Pin;
-    uint8_t             RX_PinSource;
-    uint8_t             TX_PinSource;
+//    GPIO_TypeDef*       GPIO_RX;
+//    GPIO_TypeDef*       GPIO_TX;
+//    uint16_t            RX_Pin;
+//    uint16_t            Tx_Pin;
+//    uint8_t             RX_PinSource;
+//    uint8_t             TX_PinSource;
     IRQn_Type           USART_IRQn;
     IRQn_Type           Rx_DMA_IRQn;
     IRQn_Type           Tx_DMA_IRQn;

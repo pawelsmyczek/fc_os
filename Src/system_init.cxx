@@ -59,40 +59,11 @@ void system_init(void){
     init_gpio();
 //    init_timers();
 
-    /*SPI periphs init*/
 
-//    chip_select_init(&MPU6000_CS, GPIOA, GPIO_Pin_4);
-//    spi_init(&MPU6000, SPI1, SPI_CPOL_High, &MPU6000_CS, DMA2_Stream3_IRQn,
-//             DMA_Channel_3, DMA2_Stream3,
-//             DMA2_Stream2, DMA_FLAG_TCIF3, DMA_FLAG_TCIF2, 0x02);
 
-    chip_select_init(&M25P16_CS, GPIOB, GPIO_Pin_12);
-    spi_init(&M25P16, SPI2, SPI_CPOL_Low, &M25P16_CS, DMA1_Stream4_IRQn,
-            DMA_Channel_0, DMA1_Stream4,
-            DMA1_Stream3, DMA_FLAG_TCIF4, DMA_FLAG_TCIF3, 0x02);
-
-    /*I2C periph init*/
-
-    i2c_init(&BMP180, I2C1, GPIO_Pin_8, GPIO_Pin_9, 400000, I2C1_EV_IRQn, I2C1_ER_IRQn,
-            DMA1_Stream0, DMA_Channel_1, DMA1_Stream0_IRQn,
-             DMA_FLAG_TCIF0, true);
-    delay_ms(100);
-
-    /*UART periphs init*/
-
-    // uart_init(&RC);
-
-    /*USB Init*/
-
-    USBD_Init(&USB_OTG_dev,USB_OTG_FS_CORE_ID, &USR_desc,
-              &USBD_CDC_cb, &USR_cb);
     delay_ms(100);
 
     init_motors();
-//    delay_ms(1000);
-//    init_mpu();
-    delay_ms(100);
-    init_m25p16();
     delay_ms(100);
 
 
@@ -129,6 +100,7 @@ void init_clocks(void){
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI2, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
+    RCC_APB1PeriphClockCmd(RCC_APB1Periph_UART4, ENABLE);
 
 }
 
@@ -271,6 +243,48 @@ void init_gpio(void){
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource9, GPIO_AF_I2C1);
 
 
+    /*UART4*/
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_1;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_0;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    //RX PA1
+
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_UART4);
+    //TX PA0
+
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource0, GPIO_AF_UART4);
+
+    // LORA M1 M0
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_3;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
+
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_2;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_OUT;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_2MHz;
+    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
+    GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_UP;
+
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 
     // PWMs
 

@@ -32,14 +32,14 @@
 //static uint32_t config_size;
 
 
-class M25P16_
+class M25P16
 {
-    M25P16_(const M25P16_&) = delete;
-    const M25P16_& operator=(const M25P16_&) = delete;
+    M25P16(const M25P16&) = delete;
+    const M25P16& operator=(const M25P16&) = delete;
 public:
 
-    M25P16_(SPI* spi) noexcept;
-    ~M25P16_() noexcept;
+    M25P16(SPI* spi) noexcept;
+    ~M25P16() noexcept;
 
     void init_m25p16(void);
     uint8_t get_status(void);
@@ -57,10 +57,10 @@ private:
 
 
 
-void init_m25p16(void);
-void read_config(uint8_t *data, uint32_t len, uint8_t addr_start);
-bool write_config(const uint8_t *data, const uint32_t len);
-void write_page(uint8_t* data);
-void read_mem(uint8_t* data, uint8_t len);
+//void init_m25p16(void);
+//void read_config(uint8_t *data, uint32_t len, uint8_t addr_start);
+//bool write_config(const uint8_t *data, const uint32_t len);
+//void write_page(uint8_t* data);
+//void read_mem(uint8_t* data, uint8_t len);
 
 #endif //FC_SOFT_M25P16_H

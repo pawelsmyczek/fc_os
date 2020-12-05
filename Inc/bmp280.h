@@ -7,8 +7,10 @@
 
 #include "iic.h"
 
-#define BMP280_I2C_ADDRESS              0x76
+#define BMP280_I2C_ADDRESS_READ              0xED
+#define BMP280_I2C_ADDRESS_WRITE              0xEC
 #define BMP280_CHIP_ID                  0x58 /* BMP280 has chip-id 0x58 */
+#define BMP280_CHIP_ID_ADDR             0xD0
 #define BMP280_CALIB_PROM_ID            0x88
 #define BMP280_CALIB_DATA_LEN           24
 #define BMP280_REG_PRESS_MSB            0xF7
@@ -50,14 +52,14 @@ typedef enum {
  * Stand by time between measurements in normal mode
  */
 typedef enum {
-    BMP280_STANDBY_05 = 0,      /* stand by time 0.5ms */
-    BMP280_STANDBY_62 = 1,      /* stand by time 62.5ms */
-    BMP280_STANDBY_125 = 2,     /* stand by time 125ms */
-    BMP280_STANDBY_250 = 3,     /* stand by time 250ms */
-    BMP280_STANDBY_500 = 4,     /* stand by time 500ms */
-    BMP280_STANDBY_1000 = 5,    /* stand by time 1s */
-    BMP280_STANDBY_2000 = 6,    /* stand by time 2s BMP280, 10ms BME280 */
-    BMP280_STANDBY_4000 = 7,    /* stand by time 4s BMP280, 20ms BME280 */
+    BMP280_STANDBY_05 =     0,      /* stand by time 0.5ms */
+    BMP280_STANDBY_62 =     1,      /* stand by time 62.5ms */
+    BMP280_STANDBY_125 =    2,     /* stand by time 125ms */
+    BMP280_STANDBY_250 =    3,     /* stand by time 250ms */
+    BMP280_STANDBY_500 =    4,     /* stand by time 500ms */
+    BMP280_STANDBY_1000 =   5,    /* stand by time 1s */
+    BMP280_STANDBY_2000 =   6,    /* stand by time 2s BMP280, 10ms BME280 */
+    BMP280_STANDBY_4000 =   7,    /* stand by time 4s BMP280, 20ms BME280 */
 } BMP280_StandbyTime;
 
 
@@ -99,7 +101,7 @@ class BMP280
     BMP280(const BMP280&) = delete;
     const BMP280& operator =(const BMP280&) = delete;
 public:
-    BMP280(I2C_Dev* dev) noexcept;
+    BMP280(I2C* dev) noexcept;
     BMP280& operator =(BMP280&&) = default;
     BMP280_RESULT check(void);
     void read_calibration(void);
@@ -120,15 +122,15 @@ public:
     void low_pass_filter(float* output, float input, float cut_off_freq);
 
 private:
-    I2C_Dev* dev;
+    I2C* dev;
     uint16_t addr;
     BMP280_CalibrationTypedef bmp_cali;
     uint8_t  id;        /* Chip ID */
     float pressure;
     float temperature;
     bmp280_params_t params;
-    uint32_t up;
-    uint32_t ut;
+    uint64_t up;
+    int32_t ut;
     int32_t fine_temp;
     uint8_t data_buffer[6];
 

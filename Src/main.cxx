@@ -1,10 +1,9 @@
 /*TODO:
  * - Basic scheduler: USAGE TO BE CONSIDERED, WHILE INTERRUPTS MATCH OUR NEEDS
- *      * scheduling function IF THERE WILL BE NEED FOR IT, SysTick will be enough for mpu_timestamp,
- * - KIND OF FIXED WITH DMA think of ways of better mpu initialization in terms of scale differences,
- * - Steering algorithms:
- *      * LQR TO BE IMPLEMENTED AS SOON AS QUADROTOR FLIES WITH PID AND STABILIZES ITSELF
- * - Tests
+ *      * scheduling function IF THERE WILL BE NEED FOR IT,
+ * - Tests:
+ *      * currently the module successfully ported to cpp
+ *      * added uart support and lora device rx/tx, for now it sends randomly data - to be investigated why
  * */
 
 
@@ -49,16 +48,24 @@ int main(void)
 
     system_init();
     SPI spi1(&MPU6000_Dev);
-    MPU6000_ mpu(&spi1);
+    SPI spi2(&M25P16_);
+    I2C i2c(&BMP180_);
+    UART_ uart4(&LORA, 9600, MODE_8E2);
+    delay_ms(100);
+    USBD_Init(&USB_OTG_dev,USB_OTG_FS_CORE_ID, &USR_desc,
+              &USBD_CDC_cb, &USR_cb);
 
-    BMP280 bmp(&BMP180);
+    MPU6000_ mpu(&spi1);
+    M25P16 m25p16(&spi2);
+    BMP280 bmp(&i2c);
+    E32 e32(&uart4);
+
     uint8_t id = bmp.check();
     bmp.soft_reset();
     delay_ms(100);
     bmp.status_read();
     bmp.read_calibration();
     bmp.write_config();
-
 
     toggle_leds_on_start();
 
@@ -107,7 +114,9 @@ int main(void)
     CDC_Send_DATA(reinterpret_cast<const uint8_t *>("- TEST GYRO?                  'g'\n\r"), 36);
     CDC_Send_DATA(reinterpret_cast<const uint8_t *>("- TEST ACCEL?                 'a'\n\r"), 36);
     CDC_Send_DATA(reinterpret_cast<const uint8_t *>("- TEST BARO?                  'b'\n\r"), 36);
-    while(serial_in_buffer != 't' && serial_in_buffer != 'r' && serial_in_buffer != 'g' && serial_in_buffer != 'a' && serial_in_buffer != 'b')
+    CDC_Send_DATA(reinterpret_cast<const uint8_t *>("- TEST RX/TX?                 'x'\n\r"), 36);
+    while(serial_in_buffer != 't' && serial_in_buffer != 'r' && serial_in_buffer != 'g'
+                                    && serial_in_buffer != 'a' && serial_in_buffer != 'b' && serial_in_buffer != 'x')
         CDC_Receive_DATA(reinterpret_cast<uint8_t *>(&serial_in_buffer), 1);
 
     delay_ms(1000);
@@ -129,7 +138,7 @@ int main(void)
 
         delay_ms(1000);
         NVIC_DisableIRQ(EXTI4_IRQn);
-        read_config(flight_data_buffer, sizeof(flight_data_t), 0x00);
+        m25p16.read_config(flight_data_buffer, sizeof(flight_data_t), 0x00);
         NVIC_EnableIRQ(EXTI4_IRQn);
         flight_data_t* config_ptr = (flight_data_t*)flight_data_buffer;
         for(int i = 0; i < 1024; i++){
@@ -176,7 +185,7 @@ int main(void)
          * */
         bmp_calibration_time+=millis();
         while (millis() < bmp_calibration_time){
-            bmp180_update();
+            bmp.update();
             bmp_data.ground_altitude = bmp_data.low_pass_filtered;
         }
         (&pid_altitude)->set_point = 0.4f;
@@ -185,7 +194,7 @@ int main(void)
          * */
 
         while(pwm_out++ < pwm_out_high ) {
-            bmp180_update();
+            bmp.update();
             mpu.compute_angles();
             pwm_rf = pwm_out; pwm_rb = pwm_out; pwm_lb = pwm_out; pwm_lf = pwm_out;
             for(uint8_t motor = 0; motor < 4; motor++)
@@ -199,7 +208,7 @@ int main(void)
         uint16_t incr_data = 0;
         ellapsed_time = millis() + test_procedure_time;
         while(millis() < ellapsed_time){
-            bmp180_update();
+            bmp.update();
             mpu.compute_angles();
             /**
              * start height increase until the set point is reached
@@ -236,10 +245,10 @@ int main(void)
             write_motor(MOTOR_3, pwm_lb);
             write_motor(MOTOR_4, pwm_lf);
             if(incr_data < 1024){
-                flight_data_file.height_data[incr_data] = bmp_data.delta_altitude;
-                flight_data_file.angle_roll[incr_data]  = 0; //real_angle[ROLL];
-                flight_data_file.angle_pitch[incr_data] = 0; //real_angle[PITCH];
-                flight_data_file.angle_yaw[incr_data]   = 0; //angle[YAW];
+                flight_data_file.height_data[incr_data] = bmp.get_press();
+                flight_data_file.angle_roll[incr_data]  = mpu.get_angle(ROLL);
+                flight_data_file.angle_pitch[incr_data] = mpu.get_angle(PITCH);
+                flight_data_file.angle_yaw[incr_data]   = mpu.get_angle(YAW);
             }
             // serial_out_len = sprintf(serial_out, "PWM_RF - %u, PWM_RB - %u, PWM_LB - %u, PWM_LF - %u, Z_VELOCITY - %.1f\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf, velocity[YAW]);
             // serial_out_len = sprintf(serial_out, "%u, %u, %u, %u, %.1f\n\r", pwm_rf, pwm_rb, pwm_lb, pwm_lf, (&pid_z_velocity)->output);
@@ -260,7 +269,7 @@ int main(void)
 
 
         while(pwm_out-- > pwm_out_low ) {
-            bmp180_update();
+            bmp.update();
             mpu.compute_angles();
             //positions_estimate();
             pwm_rf = pwm_out; pwm_rb = pwm_out; pwm_lb = pwm_out; pwm_lf = pwm_out;
@@ -278,7 +287,7 @@ int main(void)
         CDC_Send_DATA(reinterpret_cast<const uint8_t *>("START WRITING FLIGHT DATA TO EEPROM\n\r"), 38);
 
         NVIC_DisableIRQ(EXTI4_IRQn);
-        write_config((uint8_t*)&flight_data_file, sizeof(flight_data_t));
+        m25p16.write_config((uint8_t*)&flight_data_file, sizeof(flight_data_t));
         NVIC_EnableIRQ(EXTI4_IRQn);
 
         CDC_Send_DATA(reinterpret_cast<const uint8_t *>("WRITING FLIGHT DATA TO EEPROM END\n\r"), 36);
@@ -297,10 +306,10 @@ int main(void)
 //    }
 
 
-    while(1)
+    for( ; ; )
     {
         INFO_LED_ON;
-        // bmp.update();
+        bmp.update();
         mpu.compute_angles();
 
 //        sprintf(serial_out, "%.3f, %.3f, %.3f\n\r", velocity[ROLL], velocity[PITCH], velocity[YAW]);
@@ -322,6 +331,16 @@ int main(void)
             serial_out_len = sprintf(serial_out, "%.2f %.2f\n\r", bmp.get_press(), bmp.get_temp());
             CDC_Send_DATA(reinterpret_cast<const uint8_t *>(serial_out), serial_out_len);
             delay_ms(100);
+        }
+        else if(serial_in_buffer == 'x'){
+            e32.write(reinterpret_cast<const uint8_t *>("aabbccddeeffgghhiijjkkllmmnn"), 28);
+//            uint8_t e32_data[10];
+//            for(uint8_t i = 0; i < sizeof(e32_data)/sizeof(e32_data[0]); ++i)
+//                e32_data[i] = e32.read();
+//            serial_out_len = sprintf(serial_out, "%d%d%d%d%d%d%d%d%d%d\n\r", e32_data[0], e32_data[1], e32_data[2], e32_data[3]
+//                    , e32_data[4], e32_data[5], e32_data[6], e32_data[7], e32_data[8], e32_data[9]);
+//            CDC_Send_DATA(reinterpret_cast<const uint8_t *>(serial_out), serial_out_len);
+            delay_ms(1);
         }
         INFO_LED_OFF;
 	}

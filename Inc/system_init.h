@@ -15,6 +15,7 @@
 #include "spi.h"
 #include "iic.h"
 #include "uart.h"
+#include "e32.h"
 #include "hcsr04.h"
 #include "board.h"
 

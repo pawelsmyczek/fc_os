@@ -45,13 +45,14 @@ class I2C
     I2C(const I2C&) = delete;
     const I2C& operator=(const I2C&) = delete;
 public:
-    I2C(I2C_Dev_* devv) noexcept;
+    I2C(const I2C_Dev_* devv) noexcept;
     ~I2C() noexcept;
     void unstick();
     bool check_busy();
     bool is_initialised();
     void handle_hardware_failure();
-    int8_t read_data_async(uint8_t _addr,
+    void transfer_complete_cb();
+        int8_t read_data_async(uint8_t _addr,
                            uint8_t _reg,
                            uint8_t number_of_bytes,
                            uint8_t *data,
@@ -71,7 +72,7 @@ public:
     void handle_event();
 
 private:
-    I2C_Dev_*           dev;
+    const I2C_Dev_*           dev;
     DMA_InitTypeDef     dma;
     uint8_t             return_code;
     void                (*callback)(uint8_t);
